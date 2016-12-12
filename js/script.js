@@ -44,7 +44,7 @@ function getMETAR(userLat, userLong) {
     console.log(url);
     onlineRequest(url).then(function(result) {
         result = JSON.parse(result);
-        var METAR = result["Raw-Report"] + " " + result["Remarks"];
+        var METAR = result["Raw-Report"];
         document.getElementById("airportTitle").innerHTML = result.Info["City"] + " " + result.Info["Name"];
         document.getElementById("airportInfo").innerHTML = "Location: " + result.Info["City"] + ", " + result.Info["State"] + ", " + result.Info["Country"] + "<br>" + "Elevation: " + Math.round(parseInt(result.Info["Elevation"])*3.28) + "ft";
         document.getElementById("RawMETAR").innerHTML = "<strong>RAW METAR: </strong>" + METAR;
