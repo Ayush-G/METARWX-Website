@@ -46,7 +46,7 @@ function getMETAR(userLat, userLong) {
         result = JSON.parse(result);
         var METAR = result["Raw-Report"] + " " + result["Remarks"];
         document.getElementById("airportTitle").innerHTML = result.Info["City"] + " " + result.Info["Name"];
-        document.getElementById("airportInfo").innerHTML = "Location: " + result.Info["City"] + ", " + result.Info["State"] + ", " + result.Info["Country"] + "<br>" + "Elevation: " + result.Info["Elevation"] + "ft";
+        document.getElementById("airportInfo").innerHTML = "Location: " + result.Info["City"] + ", " + result.Info["State"] + ", " + result.Info["Country"] + "<br>" + "Elevation: " + Math.round(parseInt(result.Info["Elevation"])*3.28) + "ft";
         document.getElementById("RawMETAR").innerHTML = "<strong>RAW METAR: </strong>" + METAR;
     }).catch(function() {
         console.log("Error!");
