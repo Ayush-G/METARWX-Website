@@ -1,4 +1,3 @@
-document.getElementById("a").innerHTML = "JS Initialized";
 console.log("Running JS");
 
 var promise
@@ -39,7 +38,7 @@ function getMETAR(userLat, userLong) {
         var METAR = result["Raw-Report"];
         document.getElementById("airportTitle").innerHTML = result.Info["City"] + " " + result.Info["Name"];
         document.getElementById("airportInfo").innerHTML = "Location: " + result.Info["City"] + ", " + result.Info["State"] + ", " + result.Info["Country"] + "<br>" + "Elevation: " + Math.round(parseInt(result.Info["Elevation"])*3.28) + "ft";
-        document.getElementById("RawMETAR").innerHTML = "<strong>RAW METAR: </strong>" + METAR;
+        document.getElementById("RawMETAR").innerHTML = METAR;
     }).catch(function() {
         console.log("Error!");
     });
