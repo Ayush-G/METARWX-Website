@@ -31,7 +31,7 @@ function onlineRequest(url, headers="") {
 };
 
 
-onlineRequest("http://www.freegeoip.net/json/99.245.2.227").then(function(result) {
+onlineRequest("http://www.freegeoip.net/json").then(function(result) {
     result = JSON.parse(result);
     console.log(result);
     getMETAR(result.latitude, result.longitude);
