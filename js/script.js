@@ -32,7 +32,7 @@ function onlineRequest(url, headers="") {
 
 
 function getMETAR(userLat, userLong) {
-    var url = "http://avwx.rest/api/metar/" + userLat + "," + userLong + "?options=info"
+    var url = "https://avwx.rest/api/metar/" + userLat + "," + userLong + "?options=info"
     console.log(url);
     onlineRequest(url).then(function(result) {
         result = JSON.parse(result);
