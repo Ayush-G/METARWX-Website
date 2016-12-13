@@ -1,7 +1,17 @@
+html{
+    text-align: center;
+    font-family: Roboto;
+}
 #a{
     color: white;
     background-color:  red;
-    text-align: center;
-    font-family: Roboto;
     font-size: 24px;
+}
+
+#airportTitle{
+    font-weight: bold;
+}
+
+#demo{
+    font-size: 14px;
 }
