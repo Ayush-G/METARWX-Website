@@ -422,6 +422,20 @@ function translateMETAR(METAR) {
             }
     }
     metRMK = metRMK.trim();
+    if (metRMK != "") {
+       while (metRMK.split(' ')[0] in dictCloudType) {
+           if (metRMK.split(' ')[1] === "TR") {
+               CloudDet = metRMK.split(' ')[0];
+               metTranslate.CloudDet[x] = {}
+               metTranslate.CloudDet[x].Type = dictCloudType[CloudDet]
+               metTranslate.CloudDet[x].Coverage = 'Trace';
+               metRMK = metRMK.replace(CloudDet + " TR", "");
+               x++;
+               metRMK = metRMK.trim();
+           }
+       }
+    }
+    metRMK = metRMK.trim();
 
     //Sea Level Pressure
     if (metRMK != "") {
