@@ -3,20 +3,16 @@ html{
     font-family: Roboto;
     background-color: #2980b9;
     color: white;
-}
+};
 
 #airportTitle{
     font-weight: bold;
     position: relative;
     padding: 4px
-}
-
-#airportInfo{
-
-}
+};
 #demo{
     font-size: 14px;
-}
+};
 
 .btn{
     text-decoration: none;
@@ -27,7 +23,7 @@ html{
     display: inline-block;
 	margin-bottom: 2rem;
 	border-radius: 0.3rem;
-}
+};
 
 #stationID{
     border-width: 0rem;
@@ -37,4 +33,4 @@ html{
     outline: none;
     font-size: 1.2rem;
     text-transform: uppercase;
-}
+};
