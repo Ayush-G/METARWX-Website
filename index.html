@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
        <script type="text/javascript">
             var host = "metarweather.tk";
@@ -8,6 +8,7 @@
         </script>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>METAR Weather</title>
         <meta name="description" content="An interactive website for getting up-to-date weather observations.">
         <link rel="shortcut icon" href="/favicon/favicon.ico">
@@ -32,18 +33,20 @@
         <link rel="canonical" href=" { { site.url } }{ { page.url } }" />
         <link rel="stylesheet" href="css/styles.css">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-
     </head>
     <body>
-        <div>
-            <p id="a">ALLOW THE SITE TO USE YOUR LOCATION, IT'S TO RETRIEVE THE METAR!</p>
-        </div>
-        <div>
-           <p id="airportTitle">Airport Title</p>
-           <p id="airportInfo">Airport Information</p>
-            <p id="RawMETAR">Data Not Shown</p>
-        </div>
-        <div id="demo"><strong>Decoded METAR: </strong><br></div>
+        <section>
+            <div>
+                <p id="a">ALLOW THE SITE TO USE YOUR LOCATION, IT'S TO RETRIEVE THE METAR!</p>
+            </div>
+        </section>
+        <section>
+            <div>
+               <p id="airportTitle">Airport Title</p>
+               <p id="airportInfo">Airport Information</p>
+                <p id="RawMETAR">Data Not Shown</p>
+            </div>
+            <div id="demo"><strong>Decoded METAR: </strong><br></div>
+        </section>
         <script type="text/javascript" src="js/script.js"></script>
     </body>
