@@ -35,7 +35,7 @@ function onlineRequest(url, headers="") {
         };
         xmlhttp.open("GET", url, true);
         if (headers !== "") {
-            xmlhttp.setRequestHeader('X-Mashape-Key', headers);
+            xmlhttp.setRequestHeader(headers);
         };
         xmlhttp.send();
     });
@@ -182,6 +182,12 @@ function translateMETAR(METAR) {
     metTranslate.Time.Day = metMETAR.slice(0,2);
     metTranslate.Time.Hour = metMETAR.slice(2,4) + ":" + metMETAR.slice(4,6);
     metMETAR = metMETAR.slice(8);
+    
+    //Retrieval Time
+    var d = new Date();
+    metTranslate.RetrieveTime = d.getHours() + ":" + d.getMinutes();
+    
+    
     //CCA and AUTO
     if ((metMETAR.match(/CC./)) || (metMETAR.indexOf('AUTO') != -1) || (metMETAR.indexOf('AWOS') != -1)) {
         metTranslate.ReportMod = metMETAR.split(' ')[0];
@@ -213,8 +219,10 @@ function translateMETAR(METAR) {
     metMETAR = metMETAR.trim();
 
     //Visibility
+    metTranslate.Visibility = {}
     if (metMETAR.indexOf("SM") != -1) {
         metTranslate.Visibility = metMETAR.split('SM')[0];
+        //metTranslate.Visibility['Metric'] = Math.round(parseInt(metTranslate.Visibility['Imperial'])*1.609)
         if (metMETAR.indexOf("/") == -1) {
             metTranslate.IMC = true;
         } else{
@@ -223,6 +231,7 @@ function translateMETAR(METAR) {
             }
         }
         metTranslate.Visibility = metTranslate.Visibility + "SM";
+        //metTranslate.Visibility['Metric'] = metTranslate.Visibility['Metric'] + "KM" 
         metMETAR = metMETAR.replace(metTranslate.Visibility, "");
     } else {
         metTranslate.Visibility = metMETAR.split(' ')[0];
@@ -383,7 +392,7 @@ function translateMETAR(METAR) {
     if (metMETAR.length == 5) {
         metTranslate.Altimeter = metMETAR;
         metMETAR = metMETAR.replace(metTranslate.Altimeter, '');
-        if (metMETAR.indexOf('Q') != -1) {
+        if (metTranslate.Altimeter.indexOf('Q') != -1) {
             metTranslate.Altimeter = metTranslate.Altimeter.slice(1) + "hPa";
         } else {
             metTranslate.Altimeter = metTranslate.Altimeter.slice(1,3) + '.' + metTranslate.Altimeter.slice(3) + '"Hg'
@@ -391,7 +400,7 @@ function translateMETAR(METAR) {
     } else {
         metTranslate.Altimeter = metMETAR.split(' ')[0];
         metMETAR = metMETAR.replace(metTranslate.Altimeter, '');
-        if (metMETAR.indexOf('Q') != -1) {
+        if (metTranslate.Altimeter.indexOf('Q') != -1) {
             metTranslate.Altimeter = metTranslate.Altimeter.slice(1) + "hPa";
         } else {
             metTranslate.Altimeter = metTranslate.Altimeter.slice(1,3) + '.' + metTranslate.Altimeter.slice(3) + '"Hg'
@@ -497,7 +506,10 @@ function translateMETAR(METAR) {
                 document.getElementById('demo').innerHTML += "<strong>" + key + "</strong>" +"<br>"
                 printValues(obj[key]);
             } else {
-                document.getElementById('demo').innerHTML += key + ': ' + obj[key] + "<br>"
+            	if (obj[key] === "") {
+            	} else {
+                	document.getElementById('demo').innerHTML += key + ': ' + obj[key] + "<br>"
+                }
             }
         }
     }
