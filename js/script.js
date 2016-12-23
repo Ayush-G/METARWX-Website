@@ -1,6 +1,18 @@
 console.log("Running JS");
-
+var getMETARbtn = document.getElementById("getMETAR");
 var promise
+
+getMETARbtn.addEventListener('click', function(event) {
+    var station = document.getElementById("stationID").value;
+    getMETAR(station);
+})
+
+document.getElementById('stationID').onkeypress=function(e){
+	if (e.keyCode == 13){
+		document.getElementById('getMETAR').click();
+	}
+}
+
 
 function onlineRequest(url, headers="") {
     var xmlhttp = new XMLHttpRequest();
@@ -30,16 +42,24 @@ function onlineRequest(url, headers="") {
 };
 
 
-function getMETAR(userLat, userLong) {
-    var url = "https://avwx.rest/api/metar/" + userLat + "," + userLong + "?options=info"
+function getMETAR(params) {
+    url = "https://avwx.rest/api/metar/" + params + "?options=info,translate";
     console.log(url);
     onlineRequest(url).then(function(result) {
         result = JSON.parse(result);
-        var retrievedMETAR = result["Raw-Report"];
-        document.getElementById("airportTitle").innerHTML = result.Info["City"] + " " + result.Info["Name"];
-        document.getElementById("airportInfo").innerHTML = "Location: " + result.Info["City"] + ", " + result.Info["State"] + ", " + result.Info["Country"] + "<br>" + "Elevation: " + Math.round(parseInt(result.Info["Elevation"])*3.28) + "ft";
-        document.getElementById("RawMETAR").innerHTML = retrievedMETAR;
-        translateMETAR(retrievedMETAR);
+        if (result["Raw-Report"] !== undefined) {
+            var retrievedMETAR = result["Raw-Report"];
+            document.getElementById("airportTitle").innerHTML = result.Info["City"] + " " + result.Info["Name"];
+            document.getElementById("airportInfo").innerHTML = "Location: " + result.Info["City"] + ", " + result.Info["State"] + ", " + result.Info["Country"] + "<br>" + "Elevation: " + Math.round(parseInt(result.Info["Elevation"])*3.28) + "ft";
+            document.getElementById("RawMETAR").innerHTML = retrievedMETAR;
+            document.getElementById("demo").innerHTML = "";
+            translateMETAR(retrievedMETAR);
+        } else {
+            document.getElementById("airportTitle").innerHTML = "Invalid ICAO Code";
+            document.getElementById("airportInfo").innerHTML = "";
+            document.getElementById("RawMETAR").innerHTML = "";
+            document.getElementById("demo").innerHTML = "";
+        }
     }).catch(function(error) {
         console.log(error);
     });
@@ -56,7 +76,7 @@ function getLocation() {
     }
 }
 function showPosition(position) {
-    getMETAR(position.coords.latitude,position.coords.longitude);
+    getMETAR(position.coords.latitude + "," + position.coords.longitude);
 }
 
 function showError(error) {

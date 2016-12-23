@@ -35,17 +35,17 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     </head>
     <body>
-        <section>
-            <div>
-                <p id="a">ALLOW THE SITE TO USE YOUR LOCATION, IT'S TO RETRIEVE THE METAR!</p>
-            </div>
+        <section class="header">
+                <h1 id="siteTitle">METAR Weather</h1>
         </section>
-        <section>
-            <div>
-               <p id="airportTitle">Airport Title</p>
-               <p id="airportInfo">Airport Information</p>
-                <p id="RawMETAR">Data Not Shown</p>
-            </div>
+        <section class="main">
+          <div id="input">
+              <input type="text" id="stationID" value="" placeholder="CYOW">
+              <a href="javascript:void(0)" class="btn" id="getMETAR">Get METAR</a>
+          </div>
+           <div id="airportTitle">Airport Title</div>
+           <div id="airportInfo">Airport Information</div>
+            <div id="RawMETAR">Data Not Shown</div>
             <div id="demo"><strong>Decoded METAR: </strong><br></div>
         </section>
         <script type="text/javascript" src="js/script.js"></script>
