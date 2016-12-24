@@ -110,6 +110,7 @@ function addAlert(message) {
               '&times;</span>' +
               '</button>' +
               message + '</div>');
+
     $("#alert").fadeTo(8000, 500).slideUp(500, function(){
         $("#alert").slideUp(500);
     });
