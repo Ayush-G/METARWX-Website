@@ -12,7 +12,12 @@ getMETARLocbtn.addEventListener('click', function(event) {
     getLocation();
 })
 
-
+document.getElementById('stationID').onkeypress=function(e){
+	if (e.keyCode == 13){
+		document.getElementById('getMETAR').click();
+		document.getElementById('stationID').blur(); // To hide the software keyboard after user presses enter
+	}
+}
 
 
 function onlineRequest(url, headers="") {
@@ -25,11 +30,8 @@ function onlineRequest(url, headers="") {
                    var Response = (xmlhttp.responseText);
                    resolve(Response);
                }
-               else if (xmlhttp.status == 400) {
-                  alert('There was an error 400');
-               }
                else {
-                   alert('something else other than 200 was returned');
+                addAlert("Unable to retrieve data.")
                }
             }
 
@@ -56,13 +58,14 @@ function getMETAR(params) {
             document.getElementById("demo").innerHTML = "";
             translateMETAR(retrievedMETAR);
         } else {
-            document.getElementById("airportTitle").innerHTML = "Invalid ICAO Code";
+            addAlert("Invalid ICAO Code");
+            document.getElementById("airportTitle").innerHTML = "";
             document.getElementById("airportInfo").innerHTML = "";
             document.getElementById("RawMETAR").innerHTML = "";
             document.getElementById("demo").innerHTML = "";
-        }
+        };
     }).catch(function(error) {
-        console.log(error);
+        addAlert(error);
     });
 
 }
@@ -73,30 +76,41 @@ function getLocation() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(showPosition, showError);
     } else {
-        document.getElementById("demo").innerHTML = "Geolocation is not supported by this browser.";
+        addAlert("Geolocation is not supported by this browser.");
     }
 }
 function showPosition(position) {
     getMETAR(position.coords.latitude + "," + position.coords.longitude);
 }
 
+
 function showError(error) {
     switch(error.code) {
         case error.PERMISSION_DENIED:
-            document.getElementById("RawMETAR").innerHTML = "User denied the request for Geolocation."
+            addAlert("Please enable geolocation to get closest data.")
             break;
         case error.POSITION_UNAVAILABLE:
-            document.getElementById("RawMETAR").innerHTML = "Location information is unavailable."
+            addAlert("Location information is unavailable.")
             break;
         case error.TIMEOUT:
-            document.getElementById("RawMETAR").innerHTML = "The request to get user location timed out."
+            addAlert("Location request timed out.")
             break;
         case error.UNKNOWN_ERROR:
-            document.getElementById("RawMETAR").innerHTML = "An unknown error occurred."
+            addAlert("An unknown error occurred.")
             break;
     }
 }
 
+
+function addAlert(message) {
+    $('#metMain').prepend(
+        '<div class="alert alert-danger alert-dismissable fade in" role="alert">' +
+            '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+            '<span aria-hidden="true">' +
+              '&times;</span>' +
+              '</button>' +
+              message + '</div>');
+}
 
 
 //Translate Script Below

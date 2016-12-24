@@ -1,13 +1,12 @@
 html{
     text-align: center;
-    font-family: Roboto;
-    background-color: #2980b9;
+    background-color: #0275d8;
     color: white;
 }
 
-#main{
-  background-color: lightblue;
-  margin: 4px;
+.metInput{
+  padding: 0.5rem;
+  box-sizing: border-box;
 }
 
 #airportTitle{
@@ -19,8 +18,17 @@ html{
 #airportInfo{
     padding: 4px;
 }
-#demo{
-    font-size: 14px;
+
+#stationID, #getMETAR, #getMETARLoc{
+  display: inline;
+}
+
+#stationID{
+  width: 80px;
+}
+
+.metBody{
+    color: white;
 }
 
 #stationID{

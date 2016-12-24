@@ -34,12 +34,12 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/css/bootstrap.min.css" integrity="sha384-AysaV+vQoT3kOAXZkl02PThvDr8HYKPZhNT5h/CXfBThSRXQ6jW5DO2ekP5ViFdi" crossorigin="anonymous">
         <link rel="stylesheet" type="text/css" href="css/styles.css" media="screen">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-        <meta name="theme-color" content="#2980b9">
+        <meta name="theme-color" content="#0275d8">
     </head>
 
 
     <body>
-      <nav class="navbar navbar-light bg-faded">
+      <nav class="navbar navbar-dark bg-primary">
         <button class="navbar-toggler hidden-lg-up" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"></button>
         <div class="collapse navbar-toggleable-md" id="navbarResponsive">
           <a class="navbar-brand" href="#">METAR Weather</a>
@@ -53,16 +53,16 @@
           </ul>
         </div>
       </nav>
-      <form class="form-inline float-lg-center">
-        <input class="form-control" id="stationID" type="text" placeholder="ICAO">
-        <button class="btn" type="submit" id="getMETAR">Submit</button>
-        <button class="btn btn-outline-success" type="text" id="getMETARLoc">Location</button>
-      </form>
-      <section>
-        <div id="airportTitle">Airport Title</div>
-        <div id="airportInfo">Airport Information</div>
-        <div id="RawMETAR">Data Not Shown</div>
-        <div id="demo"><strong>Decoded METAR: </strong><br></div>
+      <input class="form-control" id="stationID" type="text" placeholder="ICAO">
+      <button class="btn btn-outline-primary" type="button" id="getMETAR">Submit</button>
+      <button class="btn btn-outline-success" type="button" id="getMETARLoc">Location</button>
+
+      <section class="bg-primary">
+        <div id="metMain" class="metBody">
+          <div id="airportTitle">Airport Title</div>
+          <div id="airportInfo">Airport Information</div>
+          <div id="RawMETAR">Data Not Shown</div>
+          <div id="demo"><strong>Decoded METAR</strong><br></div>
         </div>
       </section>
       <script type="text/javascript" src="js/script.js"></script>
