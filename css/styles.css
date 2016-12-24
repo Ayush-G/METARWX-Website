@@ -5,32 +5,28 @@ html{
     color: white;
 }
 
+#main{
+  background-color: lightblue;
+  margin: 4px;
+}
+
 #airportTitle{
     font-weight: bold;
     position: relative;
-    padding: 4px
+    padding: 4px;
+}
+
+#airportInfo{
+    padding: 4px;
 }
 #demo{
     font-size: 14px;
 }
 
-.btn{
-    text-decoration: none;
-    color: white;
-    border: solid 1px white;
-    padding: 0.1rem;
-    margin: auto;
-    display: inline-block;
-	margin-bottom: 2rem;
-	border-radius: 0.3rem;
+.siteTitle{
+
 }
 
 #stationID{
-    border-width: 0rem;
-    border-radius: 0.3rem;
-    margin-bottom: 2rem;
-    font-weight: normal;
-    outline: none;
-    font-size: 1.2rem;
     text-transform: uppercase;
 }

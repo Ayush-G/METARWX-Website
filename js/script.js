@@ -7,11 +7,7 @@ getMETARbtn.addEventListener('click', function(event) {
     getMETAR(station);
 })
 
-document.getElementById('stationID').onkeypress=function(e){
-	if (e.keyCode == 13){
-		document.getElementById('getMETAR').click();
-	}
-}
+
 
 
 function onlineRequest(url, headers="") {
@@ -182,12 +178,12 @@ function translateMETAR(METAR) {
     metTranslate.Time.Day = metMETAR.slice(0,2);
     metTranslate.Time.Hour = metMETAR.slice(2,4) + ":" + metMETAR.slice(4,6);
     metMETAR = metMETAR.slice(8);
-    
+
     //Retrieval Time
     var d = new Date();
     metTranslate.RetrieveTime = d.getHours() + ":" + d.getMinutes();
-    
-    
+
+
     //CCA and AUTO
     if ((metMETAR.match(/CC./)) || (metMETAR.indexOf('AUTO') != -1) || (metMETAR.indexOf('AWOS') != -1)) {
         metTranslate.ReportMod = metMETAR.split(' ')[0];
@@ -231,7 +227,7 @@ function translateMETAR(METAR) {
             }
         }
         metTranslate.Visibility = metTranslate.Visibility + "SM";
-        //metTranslate.Visibility['Metric'] = metTranslate.Visibility['Metric'] + "KM" 
+        //metTranslate.Visibility['Metric'] = metTranslate.Visibility['Metric'] + "KM"
         metMETAR = metMETAR.replace(metTranslate.Visibility, "");
     } else {
         metTranslate.Visibility = metMETAR.split(' ')[0];
@@ -516,8 +512,3 @@ function translateMETAR(METAR) {
 
 
 }
-
-
-
-
-
