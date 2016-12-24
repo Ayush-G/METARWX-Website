@@ -1,10 +1,15 @@
 console.log("Running JS");
 var getMETARbtn = document.getElementById("getMETAR");
+var getMETARLocbtn = document.getElementById("getMETARLoc");
 var promise
 
 getMETARbtn.addEventListener('click', function(event) {
     var station = document.getElementById("stationID").value;
     getMETAR(station);
+})
+
+getMETARLocbtn.addEventListener('click', function(event) {
+    getLocation();
 })
 
 
