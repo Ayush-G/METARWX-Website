@@ -191,6 +191,8 @@ function translateMETAR(METAR) {
     }
     var metTranslate = {};
     metTranslate.IMC = false;
+    //var TESTmetMETAR = "CYWG 172000Z 30015G25KT 3/4SM R36/4000FT/D R06/P6000FT/N VCFC -SN BLSN BKN008 OVC040 VV007 M05/M08 A2992 REFZRA WS RWY36"
+    //var TESTmetRMK = "RMK SF5NS3 SLP134"
     //metTranslate.RawMETAR = metMETAR;
     //Station
     metTranslate.Station = metMETAR.slice(0,4);
@@ -302,7 +304,7 @@ function translateMETAR(METAR) {
     }
 
     //Vicinity Wx
-    metTranslate.Vicinity = "None";
+    metTranslate.Vicinity = "";
     if ((metMETAR.split(' ')[0].indexOf('VC') != -1) && (metMETAR.split(' ')[0].indexOf('OVC') == -1)) {
         metTranslate.Vicinity = metMETAR.split(' ')[0];
         metMETAR = metMETAR.replace(metTranslate.Vicinity, "");
@@ -394,7 +396,7 @@ function translateMETAR(METAR) {
         while (metTranslate.VV.charAt(0) === '0') {
             metTranslate.VV = metTranslate.VV.substr(1);
         };
-        metTranslate.VV = metTranslate.VV + "00 ft";
+        metTranslate.VV = metTranslate.VV + "00ft";
     }
     metMETAR = metMETAR.trim();
 
@@ -451,7 +453,7 @@ function translateMETAR(METAR) {
             metTranslate.WindShear = "Runway " + metTranslate.WindShear.slice(6);
         }
     } else metTranslate.WindShear = "";
-
+    metMETAR = metMETAR.trim();
     //Remarks
     metRMK = metRMK.replace('RMK', '');
     metRMK = metRMK.trim();
@@ -518,20 +520,115 @@ function translateMETAR(METAR) {
     metTranslate.Metar = metMETAR;
     metTranslate.Remarks = metRMK;
     console.log(metTranslate);
-    printValues(metTranslate);
-    function printValues(obj) {
-        for (var key in obj) {
-            if (typeof obj[key] === "object") {
-                document.getElementById('demo').innerHTML += "<strong>" + key + "</strong>" +"<br>"
-                printValues(obj[key]);
-            } else {
-            	if (obj[key] === "") {
-            	} else {
-                	document.getElementById('demo').innerHTML += key + ': ' + obj[key] + "<br>"
+
+    showResult(metTranslate);
+    function showResult(obj) {
+      $('#ResultBox').remove()
+      $('#metResults').append(
+        '<div id="ResultBox" class="row box">' +
+          '<div id="metStation" class="col-md-6 metResults"><strong>Station: </strong></div>' +
+          '<div id="metTime" class="col-md-6 metResults"><strong>Time: </strong></div>' +
+          '<div id="metWinds" class="col-md-4 metResults"><strong>Winds: </strong></div>' +
+          '<div id="metVisibility" class="col-md-4 metResults"><strong>Visibility: </strong></div>' +
+          '<div id="metRVR" class="col-md-4 metResults"><strong>Runway Visual Range: </strong></div>' +
+          '<div id="metWx" class="col-md-4 metResults"><strong>Weather Phenomena: </strong></div>' +
+          '<div id="metClouds" class="col-md-4 metResults"><strong>Clouds: </strong></div>' +
+          '<div id="metTempDew" class="col-md-4 metResults"><strong>Temperature/Dewpoint: </strong></div>' +
+          '<div id="metPressure" class="col-md-4 metResults"><strong>Pressure: </strong></div>' +
+          '<div id="metWS" class="col-md-4 metResults"><strong>Wind Shear: </strong></div>' +
+          '<div id="metRemarks" class="col-md-4 metResults"><strong>Remarks: </strong></div>' +
+        '</div>')
+        printValues(obj)
+        function printValues(obj) {
+          for (var key in obj) {
+                if (typeof obj[key] === "object") {
+                    printValues(obj[key])
                 }
-            }
+                else {
+                	if (obj[key] === "") {
+                    obj[key] = undefined;
+                  }
+                }
+          }
         }
+      $('#metStation').html($('#metStation').html() + "<br>" + obj['Station']);
+      if (obj.ReportMod !== undefined) {
+        $('#metStation').html($('#metStation').html() + " " + obj['ReportMod']);
+      }
+      $('#metTime').html($('#metTime').html()  + "<br>" + obj.Time['Day'] + "/" + new Date().getMonth() + "/" + "20" + String(new Date().getYear()).slice(1) + " " + obj.Time['Hour'] + 'GMT' + ' Retrieved: ' + obj.RetrieveTime + ' Local');
+      if (obj.Winds['Gust'] !== undefined) {
+        $('#metWinds').html($('#metWinds').html() + "<br>From " + obj.Winds['Direction'] + " degrees" + " @ " + obj.Winds['Speed'] + " gusting to " + obj.Winds['Gust'] + "KT");
+      } else {
+        $('#metWinds').html($('#metWinds').html() + "<br>From " + obj.Winds['Direction'] + " degrees" + " @ " + obj.Winds['Speed'] + "KT");
+    }
+      $('#metVisibility').html($('#metVisibility').html() + "<br>" + obj['Visibility']);
+      if (obj.RVR !== undefined) {
+        for (var rwy in obj['RVR']) {
+          $('#metRVR').html($('#metRVR').html() + "<br>Runway: " + obj.RVR[rwy]['Runway'] + ", Visibility: " + obj.RVR[rwy]['Visibility'] + ", Tendency: " + obj.RVR[rwy]['Tendency']);
+        }
+      } else {
+        $('#metRVR').remove()
+      };
+      if ((obj.Weather !== undefined) || (obj.Vicinity !== undefined) || (obj.Recent !== undefined)) {
+        if (obj.Weather !== undefined) {
+          for (var wx in obj['Weather']) {
+            $('#metWx').html($('#metWx').html() + "<br>" + obj.Weather[wx]);
+          }
+        }
+
+        if (obj.Vicinity !== undefined) {
+            $('#metWx').html($('#metWx').html() + "<br>Vicinity: " + obj.Vicinity);
+        }
+
+        if (obj.Recent !== undefined) {
+            $('#metWx').html($('#metWx').html() + "<br>Recent: " + obj.Recent)
+        }
+
+    } else {
+      $('#metWx').remove();
+    }
+    if ((obj.Clouds !== undefined) || (obj.VV !== undefined)) {
+      if (obj.Clouds !== undefined) {
+        for (var cld in obj['Clouds']) {
+          $('#metClouds').html($('#metClouds').html() + "<br>" + obj.Clouds[cld]['Layer'] + " @ " + obj.Clouds[cld]['Height'] + "ft");
+        }
+      }
+
+      if (obj.VV !== undefined) {
+        $('#metClouds').html($('#metClouds').html() + "<br>Vertical Visibility: " + obj['VV']);
+      }
+      for (var cdet in obj['CloudDet']) {
+        $('#metClouds').html($('#metClouds').html() + "<br>" + obj.CloudDet[cdet]['Coverage'] + " of " + obj.CloudDet[cdet]['Type']);
+      }
+    } else {
+      $('#metClouds').remove()
     }
 
+    $('#metTempDew').html($('#metTempDew').html() + "<br>" + "Temperature: " + obj.Temperature + "<br>Dewpoint: " + obj.Dewpoint);
 
+    $('#metPressure').html($('#metPressure').html() + "<br>" + obj.Altimeter);
+    if (obj.SLP !== undefined) {
+      $('#metPressure').html($('#metPressure').html() + "/" + obj.SLP);
+    }
+
+    if (obj.WindShear !== undefined) {
+      $('#metWS').html($('#metWS').html() + "<br>" + obj.WindShear);
+    } else {
+      $('#metWS').remove()
+    }
+
+    if (obj.Remarks !== undefined) {
+      $('#metRemarks').html($('#metRemarks').html() + "<br>" + obj.Remarks);
+    } else if (obj.Metar !== undefined) {
+    } else {
+      $('#metRemarks').remove()
+    }
+
+    if (obj.Metar !== undefined) {
+      $('#metRemarks').html($('#metRemarks').html() + "<br>" + obj.Metar);
+    } else if (obj.Remarks !== undefined){
+    } else {
+      $('#metRemarks').remove()
+    }
+  }
 }
