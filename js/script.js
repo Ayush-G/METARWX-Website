@@ -555,7 +555,7 @@ function translateMETAR(METAR) {
       if (obj.ReportMod !== undefined) {
         $('#metStation').html($('#metStation').html() + " " + obj['ReportMod']);
       }
-      $('#metTime').html($('#metTime').html()  + "<br>" + obj.Time['Day'] + "/" + new Date().getMonth() + "/" + "20" + String(new Date().getYear()).slice(1) + " " + obj.Time['Hour'] + 'GMT' + ' Retrieved: ' + obj.RetrieveTime + ' Local');
+      $('#metTime').html($('#metTime').html()  + "<br>" + obj.Time['Day'] + "/" + (new Date().getUTCMonth()+1) + "/" + (new Date().getUTCFullYear()) + " " + obj.Time['Hour'] + 'GMT' + ' Retrieved: ' + obj.RetrieveTime + ' Local');
       if (obj.Winds['Gust'] !== undefined) {
         $('#metWinds').html($('#metWinds').html() + "<br>From " + obj.Winds['Direction'] + " degrees" + " @ " + obj.Winds['Speed'] + " gusting to " + obj.Winds['Gust'] + "KT");
       } else {
