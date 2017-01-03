@@ -555,7 +555,18 @@ function translateMETAR(METAR) {
       if (obj.ReportMod !== undefined) {
         $('#metStation').html($('#metStation').html() + " " + obj['ReportMod']);
       }
-      $('#metTime').html($('#metTime').html()  + "<br>" + obj.Time['Day'] + "/" + (new Date().getUTCMonth()+1) + "/" + (new Date().getUTCFullYear()) + " " + obj.Time['Hour'] + 'GMT' + ' Retrieved: ' + obj.RetrieveTime + ' Local');
+      var metTime = new Date()
+      var TimeZone = metTime.getTimezoneOffset()/60
+      if (metTime.getUTCDate() !== metTime.getDate()) {
+      	if (TimeZone > 0) {
+      		obj.Time['Hour'] += " (Yesterday)";
+      	} else {
+      		obj.Time['Hour'] += " (Tomorrow)";
+      	};
+      } else {
+      	obj.Time['Hour'] += " (Today)";
+      };
+      $('#metTime').html($('#metTime').html()  + "<br>" + obj.Time['Day'] + "/" + (metTime.getUTCMonth()+1) + "/" + (metTime.getUTCFullYear()) + " " + obj.Time['Hour'] + 'GMT' + ' Retrieved: ' + obj.RetrieveTime + ' Local');
       if (obj.Winds['Gust'] !== undefined) {
         $('#metWinds').html($('#metWinds').html() + "<br>From " + obj.Winds['Direction'] + " degrees" + " @ " + obj.Winds['Speed'] + " gusting to " + obj.Winds['Gust'] + "KT");
       } else {
