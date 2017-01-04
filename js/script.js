@@ -564,13 +564,17 @@ function translateMETAR(METAR) {
       		obj.Time['Displacement'] = " (Yesterday) ";
       	};
       } else {
-      	obj.Time['Displacement'] = " (Today)";
+      	obj.Time['Displacement'] = " (Today) ";
       };
       $('#metTime').html($('#metTime').html()  + "<br>" + obj.Time['Day'] + "/" + (metTime.getUTCMonth()+1) + "/" + (metTime.getUTCFullYear()) + " " + obj.Time['Hour'] + 'GMT' + ' Retrieved: ' + obj.RetrieveTime + ' Local' + obj.Time['Displacement']);
       if (obj.Winds['Gust'] !== undefined) {
         $('#metWinds').html($('#metWinds').html() + "<br>From " + obj.Winds['Direction'] + " degrees" + " @ " + obj.Winds['Speed'] + " gusting to " + obj.Winds['Gust'] + "KT");
       } else {
-        $('#metWinds').html($('#metWinds').html() + "<br>From " + obj.Winds['Direction'] + " degrees" + " @ " + obj.Winds['Speed'] + "KT");
+      	if (obj.Winds === "Calm") {
+        	$('#metWinds').html($('#metWinds').html() + "Calm");
+        } else { 
+        	$('#metWinds').html($('#metWinds').html() + "<br>From " + obj.Winds['Direction'] + " degrees" + " @ " + obj.Winds['Speed'] + "KT");
+        }
     }
       $('#metVisibility').html($('#metVisibility').html() + "<br>" + obj['Visibility']);
       if (obj.RVR !== undefined) {
