@@ -566,13 +566,13 @@ function translateMETAR(METAR) {
       } else {
       	obj.Time['Displacement'] = " (Today) ";
       };
-      $('#metTime').html($('#metTime').html()  + "<br>" + obj.Time['Day'] + "/" + (metTime.getUTCMonth()+1) + "/" + (metTime.getUTCFullYear()) + " " + obj.Time['Hour'] + 'GMT' + ' Retrieved: ' + obj.RetrieveTime + ' Local' + obj.Time['Displacement']);
+      $('#metTime').html($('#metTime').html()  + "<br>" + obj.Time['Day'] + "/" + (metTime.getUTCMonth()+1) + "/" + (metTime.getUTCFullYear()) + " " + obj.Time['Hour'] + 'GMT' + obj.Time['Displacement'] + ' Retrieved: ' + obj.RetrieveTime + ' Local');
       if (obj.Winds['Gust'] !== undefined) {
         $('#metWinds').html($('#metWinds').html() + "<br>From " + obj.Winds['Direction'] + " degrees" + " @ " + obj.Winds['Speed'] + " gusting to " + obj.Winds['Gust'] + "KT");
       } else {
       	if (obj.Winds === "Calm") {
         	$('#metWinds').html($('#metWinds').html() + "Calm");
-        } else { 
+        } else {
         	$('#metWinds').html($('#metWinds').html() + "<br>From " + obj.Winds['Direction'] + " degrees" + " @ " + obj.Winds['Speed'] + "KT");
         }
     }
