@@ -52,7 +52,12 @@ function getMETAR(params) {
         result = JSON.parse(result);
         if (result["Raw-Report"] !== undefined) {
             var retrievedMETAR = result["Raw-Report"];
-            document.getElementById("airportTitle").innerHTML = result.Info["City"] + " " + result.Info["Name"];
+            if (result.Info["Name"].split(' ')[0] === result.Info["City"]){
+              document.getElementById("airportTitle").innerHTML = result.Info["Name"];
+            } else {
+              document.getElementById("airportTitle").innerHTML = result.Info["City"] + " " + result.Info["Name"];
+
+            }
             document.getElementById("airportInfo").innerHTML = "Location: " + result.Info["City"] + ", " + result.Info["State"] + ", " + result.Info["Country"] + "<br>" + "Elevation: " + Math.round(parseInt(result.Info["Elevation"])*3.28) + "ft";
             document.getElementById("RawMETAR").innerHTML = retrievedMETAR;
             document.getElementById("demo").innerHTML = "";
@@ -192,7 +197,7 @@ function translateMETAR(METAR) {
     var metTranslate = {};
     metTranslate.IMC = false;
     //var TESTmetMETAR = "CYWG 172000Z 30015G25KT 3/4SM R36/4000FT/D R06/P6000FT/N VCFC -SN BLSN BKN008 OVC040 VV007 M05/M08 A2992 REFZRA WS RWY36"
-    //var TESTmetRMK = "RMK SF5NS3 SLP134"
+    //var TESTmetRMK = "RMK SF5NS3 SLP134 PRESRR"
     //metTranslate.RawMETAR = metMETAR;
     //Station
     metTranslate.Station = metMETAR.slice(0,4);
@@ -223,7 +228,7 @@ function translateMETAR(METAR) {
         metTranslate.Winds = "Calm";
     }else if (metWinds.indexOf("VRB") != -1) {
         metTranslate.Winds.Direction = "Variable";
-        metTranslate.Winds.Speed = metWinds.slice(3);
+        metTranslate.Winds.Speed = metWinds.slice(3,5);
     } else {
         metTranslate.Winds.Direction = metWinds.slice(0,3);
         metTranslate.Winds.Speed = metWinds.slice(3,5);
@@ -492,16 +497,15 @@ function translateMETAR(METAR) {
         if (metRMK.indexOf('SLP') != -1) {
             SLPIndex = metRMK.indexOf('SLP')
             metTranslate.SLP = metRMK.slice(SLPIndex,SLPIndex+6)
-        } else {
-            metTranslate.SLP = metRMK.split(' ')[metRMK.split(' ').length-1]
+            metRMK = metRMK.replace(metTranslate.SLP, '');
+            metTranslate.SLP = metTranslate.SLP.slice(3);
+            if ((parseInt(metTranslate.SLP.charAt(0)) <= 5)) {
+                metTranslate.SLP = '10' + metTranslate.SLP.slice(0,-1) + '.' + metTranslate.SLP.slice(-1) + 'hPa';
+            } else {
+                metTranslate.SLP = '9' + metTranslate.SLP.slice(0,-1) + '.' + metTranslate.SLP.slice(-1) + 'hPa';
+            };
         }
-        metRMK = metRMK.replace(metTranslate.SLP, '');
-        metTranslate.SLP = metTranslate.SLP.slice(3);
-        if ((parseInt(metTranslate.SLP.charAt(0)) <= 5)) {
-            metTranslate.SLP = '10' + metTranslate.SLP.slice(0,-1) + '.' + metTranslate.SLP.slice(-1) + 'hPa';
-        } else {
-            metTranslate.SLP = '9' + metTranslate.SLP.slice(0,-1) + '.' + metTranslate.SLP.slice(-1) + 'hPa';
-        };
+
     };
     metRMK = metRMK.trim();
 
@@ -516,6 +520,14 @@ function translateMETAR(METAR) {
             metRMK = metRMK.replace(metTranslate.DensityAlt, "");
         }
     }
+    if (metRMK != "") {
+      if (metRMK.indexOf('PRESFR') != -1) {
+        metRMK = metRMK.replace("PRESFR", "Pressure Falling Rapidly")
+      } else if (metRMK.indexOf('PRESRR') != -1) {
+        metRMK = metRMK.replace("PRESRR", "Pressure Rising Rapidly")
+      }
+    }
+
     metRMK = metRMK.trim();
     metTranslate.Metar = metMETAR;
     metTranslate.Remarks = metRMK;
