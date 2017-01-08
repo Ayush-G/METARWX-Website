@@ -288,11 +288,11 @@ function translateMETAR(METAR) {
         } else if (metTranslate.Visibility.slice(1) == "000") {
             metTranslate.Visibility = metTranslate.Visibility.charAt(0);
 
-            if ((parseInt(metTranslate.Visibility) <= 8000) && (parseInt(metTranslate.Visibility) >= 4800)) {
+            if ((parseInt(metTranslate.Visibility) <= 8) && (parseInt(metTranslate.Visibility) >= 4.8)) {
               metTranslate.FlightCat.Visibility = 2;
-            } else if ((parseInt(metTranslate.Visibility) < 4800) && (parseInt(metTranslate.Visibility) >= 1600)) {
+            } else if ((parseInt(metTranslate.Visibility) < 4.8) && (parseInt(metTranslate.Visibility) >= 1.6)) {
               metTranslate.FlightCat.Visibility = 1;
-            } else if (parseInt(metTranslate.Visibility) < 1600) {
+            } else if (parseInt(metTranslate.Visibility) < 1.6) {
               metTranslate.FlightCat.Visibility = 0;
             } else {
               metTranslate.FlightCat.Visibility = 3;
@@ -445,7 +445,7 @@ function translateMETAR(METAR) {
     //VV
     metTranslate.VV = "";
     if (metMETAR.split(' ')[0].slice(0,2).indexOf('VV') != -1) {
-        metTranslate.FlightCat.Clouds = 0;
+        metTranslate.FlightCat.Ceiling = 0;
         metTranslate.VV = metMETAR.split(' ')[0];
         metMETAR = metMETAR.replace(metTranslate.VV, "");
         metTranslate.VV = metTranslate.VV.slice(2);
@@ -703,11 +703,11 @@ function translateMETAR(METAR) {
       for (var cdet in obj['CloudDet']) {
         $('#metClouds').html($('#metClouds').html() + "<br>" + obj.CloudDet[cdet]['Coverage'] + " of " + obj.CloudDet[cdet]['Type']);
       }
-      if (obj.FlightCat.Clouds == 0) {
+      if (obj.FlightCat.Ceiling == 0) {
         $('#metClouds').addClass('metLIFR');
-      } else if (obj.FlightCat.Clouds == 2) {
+      } else if (obj.FlightCat.Ceiling == 2) {
         $('#metClouds').addClass('metMVFR');
-      } else if (obj.FlightCat.Clouds == 1) {
+      } else if (obj.FlightCat.Ceiling == 1) {
         $('#metClouds').addClass('metIFR');
       } else {
         $('#metClouds').addClass('metVFR');
