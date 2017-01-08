@@ -270,9 +270,6 @@ function translateMETAR(METAR) {
         } else {
           metTranslate.FlightCat.Visibility = 3;
         }
-        if (metTranslate.Visibility.indexOf('/') != -1) {
-          metTranslate.FlightCat.Visibility = 0;
-        }
         metTranslate.Visibility = metTranslate.Visibility + "SM";
         //metTranslate.Visibility['Metric'] = metTranslate.Visibility['Metric'] + "KM"
         metMETAR = metMETAR.replace(metTranslate.Visibility, "");
