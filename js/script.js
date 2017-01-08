@@ -68,6 +68,7 @@ function getMETAR(params) {
             document.getElementById("airportInfo").innerHTML = "";
             document.getElementById("RawMETAR").innerHTML = "";
             document.getElementById("demo").innerHTML = "";
+            $('#ResultBox').remove();
         };
     }).catch(function(error) {
         addAlert(error);
@@ -116,7 +117,7 @@ function addAlert(message) {
               '</button>' +
               message + '</div>');
 
-    $("#alert").fadeTo(8000, 500).slideUp(500, function(){
+    $("#alert").fadeTo(5000, 500).slideUp(500, function(){
         $("#alert").slideUp(500);
     });
 }
@@ -184,6 +185,7 @@ var dictCloudType = {'CB': 'Cumulonimbus',
                     'SN': 'Snow'};
 
 function translateMETAR(METAR) {
+    $('#alert').remove()
     //Split RMKs from METAR
     if (METAR.indexOf("RMK") === -1) {
         var rmkTemp = "";
@@ -195,9 +197,9 @@ function translateMETAR(METAR) {
         var metMETAR = rmkTemp[0];
     }
     var metTranslate = {};
-    metTranslate.IMC = false;
-    //var TESTmetMETAR = "CYWG 172000Z 30015G25KT 3/4SM R36/4000FT/D R06/P6000FT/N VCFC -SN BLSN BKN008 OVC040 VV007 M05/M08 A2992 REFZRA WS RWY36"
-    //var TESTmetRMK = "RMK SF5NS3 SLP134 PRESRR"
+    metTranslate.FlightCat = {};
+    //var metMETAR = "CYWG 172000Z 30015G25KT 3/4SM R36/4000FT/D R06/P6000FT/N VCFC -SN BLSN BKN004 OVC040 VV007 M05/M08 A2992 REFZRA WS RWY36"
+    //var metRMK = "RMK SF5NS3 SLP134 PRESRR"
     //metTranslate.RawMETAR = metMETAR;
     //Station
     metTranslate.Station = metMETAR.slice(0,4);
@@ -211,7 +213,18 @@ function translateMETAR(METAR) {
 
     //Retrieval Time
     var d = new Date();
-    metTranslate.RetrieveTime = d.getHours() + ":" + d.getMinutes();
+    if (d.getHours().toString().length == 1) {
+      RTHours = "0" + d.getHours();
+    } else {
+      RTHours = d.getHours();
+    }
+    if (d.getMinutes().toString().length == 1) {
+      RTMinutes = "0" + d.getMinutes();
+    } else {
+      RTMinutes = d.getMinutes();
+    }
+    metTranslate.RetrieveTime = RTHours + ":" + RTMinutes;
+
 
 
     //CCA and AUTO
@@ -248,13 +261,17 @@ function translateMETAR(METAR) {
     metTranslate.Visibility = {}
     if (metMETAR.indexOf("SM") != -1) {
         metTranslate.Visibility = metMETAR.split('SM')[0];
-        //metTranslate.Visibility['Metric'] = Math.round(parseInt(metTranslate.Visibility['Imperial'])*1.609)
-        if (metMETAR.indexOf("/") == -1) {
-            metTranslate.IMC = true;
-        } else{
-            if (parseInt(metTranslate.Visibility) <= 3.1) {
-                metTranslate.IMC = true;
-            }
+        if ((parseInt(metTranslate.Visibility) <= 5) && (parseInt(metTranslate.Visibility) >= 3)) {
+          metTranslate.FlightCat.Visibility = 2;
+        } else if ((parseInt(metTranslate.Visibility) < 3) && (parseInt(metTranslate.Visibility) >= 1)) {
+          metTranslate.FlightCat.Visibility = 1;
+        } else if (parseInt(metTranslate.Visibility) < 1) {
+          metTranslate.FlightCat.Visibility = 0;
+        } else {
+          metTranslate.FlightCat.Visibility = 3;
+        }
+        if (metTranslate.Visibility.indexOf('/') != -1) {
+          metTranslate.FlightCat.Visibility = 0;
         }
         metTranslate.Visibility = metTranslate.Visibility + "SM";
         //metTranslate.Visibility['Metric'] = metTranslate.Visibility['Metric'] + "KM"
@@ -264,12 +281,27 @@ function translateMETAR(METAR) {
         metMETAR = metMETAR.replace(metTranslate.Visibility, "");
         if (metTranslate.Visibility.indexOf("9999") != -1) {
             metTranslate.Visibility = ">10 KM";
+            metTranslate.FlightCat.Visibility = 3;
         } else if (metTranslate.Visibility.indexOf("0000") != -1) {
             metTranslate.Visibility = "<50 metres";
+            metTranslate.FlightCat.Visibility = 0;
         } else if (metTranslate.Visibility.slice(1) == "000") {
-            metTranslate.Visibility = metTranslate.Visibility.charAt(0) + "KM";
+            metTranslate.Visibility = metTranslate.Visibility.charAt(0);
+
+            if ((parseInt(metTranslate.Visibility) <= 8000) && (parseInt(metTranslate.Visibility) >= 4800)) {
+              metTranslate.FlightCat.Visibility = 2;
+            } else if ((parseInt(metTranslate.Visibility) < 4800) && (parseInt(metTranslate.Visibility) >= 1600)) {
+              metTranslate.FlightCat.Visibility = 1;
+            } else if (parseInt(metTranslate.Visibility) < 1600) {
+              metTranslate.FlightCat.Visibility = 0;
+            } else {
+              metTranslate.FlightCat.Visibility = 3;
+            }
+
+            metTranslate.Visibility = metTranslate.Visibility + "KM";
         } else {
             metTranslate.Visibility = metTranslate.Visibility + " metres";
+            metTranslate.FlightCat.Visibility = 0;
         }
     };
     metMETAR = metMETAR.trim();
@@ -278,7 +310,7 @@ function translateMETAR(METAR) {
     metTranslate.RVR = "";
     if (metMETAR.split(' ')[0].indexOf('/') != -1) {
         metTranslate.RVR = {};
-        metTranslate.IMC = true;
+        metTranslate.FlightCat.RVR = 0;
         var x = 0;
         do {
             metTranslate.RVR[x] = {}
@@ -358,14 +390,18 @@ function translateMETAR(METAR) {
     metMETAR = metMETAR.trim()
     //Clouds
     metTranslate.Clouds = {};
+    metTranslate.FlightCat.Ceiling = 3;
     if (metMETAR.split(' ')[0].indexOf("NSC") != -1) {
         metTranslate.Clouds = "No Significant Clouds";
         metMETAR = metMETAR.replace('NSC', "");
+        metTranslate.FlightCat.Ceiling = 3;
     } else if (metMETAR.split(' ')[0].indexOf("NCD") != -1) {
         metTranslate.Clouds = "No Cloud Detected";
         metMETAR = metMETAR.replace('NCD', "");
+        metTranslate.FlightCat.Ceiling = 3;
     }
     var x = 0;
+
     while (metMETAR.split(' ')[0].slice(0,3) in dictClouds) {
         metTranslate.Clouds[x] = {};
         metClouds = metMETAR.split(' ')[0];
@@ -384,8 +420,23 @@ function translateMETAR(METAR) {
         }
         metTranslate.Clouds[x].Height += '00';
         metMETAR = metMETAR.trim()
-        if ((parseInt(metTranslate.Clouds[x].Height) < 1500) && ((metTranslate.Clouds[x].Layer === "Broken Clouds") || (metTranslate.Clouds[x].Layer === "Overcast Clouds"))) {
-            metTranslate.IMC = true;
+
+        if (((parseInt(metTranslate.Clouds[x].Height) <= 3000) && (parseInt(metTranslate.Clouds[x].Height) >= 1000)) && ((metTranslate.Clouds[x].Layer == 'Broken Clouds') || (metTranslate.Clouds[x].Layer == 'Overcast Clouds'))) {
+          if (metTranslate.FlightCat.Ceiling > 2) {
+            metTranslate.FlightCat.Ceiling = 2;
+          }
+        } else if (((parseInt(metTranslate.Clouds[x].Height) < 1000) && (parseInt(metTranslate.Clouds[x].Height) >= 500)) && ((metTranslate.Clouds[x].Layer == 'Broken Clouds') || (metTranslate.Clouds[x].Layer == 'Overcast Clouds'))) {
+          if (metTranslate.FlightCat.Ceiling > 1) {
+            metTranslate.FlightCat.Ceiling = 1;
+          }
+        } else if (((parseInt(metTranslate.Clouds[x].Height) < 500)) && ((metTranslate.Clouds[x].Layer == 'Broken Clouds') || (metTranslate.Clouds[x].Layer == 'Overcast Clouds'))) {
+          if (metTranslate.FlightCat.Ceiling > 0) {
+            metTranslate.FlightCat.Ceiling = 0;
+          }
+        } else {
+          if (metTranslate.FlightCat.Ceiling > 3) {
+            metTranslate.FlightCat.Ceiling = 3;
+          }
         }
         x++;
     };
@@ -394,7 +445,7 @@ function translateMETAR(METAR) {
     //VV
     metTranslate.VV = "";
     if (metMETAR.split(' ')[0].slice(0,2).indexOf('VV') != -1) {
-        metTranslate.IMC = true;
+        metTranslate.FlightCat.Clouds = 0;
         metTranslate.VV = metMETAR.split(' ')[0];
         metMETAR = metMETAR.replace(metTranslate.VV, "");
         metTranslate.VV = metTranslate.VV.slice(2);
@@ -528,6 +579,15 @@ function translateMETAR(METAR) {
       }
     }
 
+    //Flight Categories
+    metTranslate.FlightCat.Overall = 3;
+    for (var key in metTranslate.FlightCat) {
+      if (metTranslate.FlightCat[key] < metTranslate.FlightCat.Overall) {
+        metTranslate.FlightCat.Overall = metTranslate.FlightCat[key];
+      }
+    }
+
+
     metRMK = metRMK.trim();
     metTranslate.Metar = metMETAR;
     metTranslate.Remarks = metRMK;
@@ -549,6 +609,7 @@ function translateMETAR(METAR) {
           '<div id="metPressure" class="col-md-4 metResults"><strong>Pressure: </strong></div>' +
           '<div id="metWS" class="col-md-4 metResults"><strong>Wind Shear: </strong></div>' +
           '<div id="metRemarks" class="col-md-4 metResults"><strong>Remarks: </strong></div>' +
+          '<div id="metFlightCat" class="col-md-4 metResults"><strong>Flight Category: </strong></div>' +
         '</div>')
         printValues(obj)
         function printValues(obj) {
@@ -578,7 +639,12 @@ function translateMETAR(METAR) {
       } else {
       	obj.Time['Displacement'] = " (Today) ";
       };
-      $('#metTime').html($('#metTime').html()  + "<br>" + obj.Time['Day'] + "/" + (metTime.getUTCMonth()+1) + "/" + (metTime.getUTCFullYear()) + " " + obj.Time['Hour'] + 'GMT' + obj.Time['Displacement'] + ' Retrieved: ' + obj.RetrieveTime + ' Local');
+      if ((metTime.getUTCMonth()+1).toString.length == 1) {
+        TimeMonth = "0" + (metTime.getUTCMonth()+1)
+      } else {
+        TimeMonth = metTime.getUTCMonth()+1
+      }
+      $('#metTime').html($('#metTime').html()  + "<br>" + obj.Time['Day'] + "/" + (TimeMonth) + "/" + (metTime.getUTCFullYear()) + " " + obj.Time['Hour'] + 'GMT' + obj.Time['Displacement'] + ' Retrieved: ' + obj.RetrieveTime + ' Local');
       if (obj.Winds['Gust'] !== undefined) {
         $('#metWinds').html($('#metWinds').html() + "<br>From " + obj.Winds['Direction'] + " degrees" + " @ " + obj.Winds['Speed'] + " gusting to " + obj.Winds['Gust'] + "KT");
       } else {
@@ -589,10 +655,20 @@ function translateMETAR(METAR) {
         }
     }
       $('#metVisibility').html($('#metVisibility').html() + "<br>" + obj['Visibility']);
+      if (obj.FlightCat.Visibility == 0) {
+        $('#metVisibility').addClass('metLIFR');
+      } else if (obj.FlightCat.Visibility == 2) {
+        $('#metVisibility').addClass('metMVFR');
+      } else if (obj.FlightCat.Visibility == 1) {
+        $('#metVisibility').addClass('metIFR');
+      } else {
+        $('#metVisibility').addClass('metVFR');
+      }
       if (obj.RVR !== undefined) {
         for (var rwy in obj['RVR']) {
           $('#metRVR').html($('#metRVR').html() + "<br>Runway: " + obj.RVR[rwy]['Runway'] + ", Visibility: " + obj.RVR[rwy]['Visibility'] + ", Tendency: " + obj.RVR[rwy]['Tendency']);
         }
+        $('#metRVR').addClass('metLIFR');
       } else {
         $('#metRVR').remove()
       };
@@ -627,6 +703,15 @@ function translateMETAR(METAR) {
       for (var cdet in obj['CloudDet']) {
         $('#metClouds').html($('#metClouds').html() + "<br>" + obj.CloudDet[cdet]['Coverage'] + " of " + obj.CloudDet[cdet]['Type']);
       }
+      if (obj.FlightCat.Clouds == 0) {
+        $('#metClouds').addClass('metLIFR');
+      } else if (obj.FlightCat.Clouds == 2) {
+        $('#metClouds').addClass('metMVFR');
+      } else if (obj.FlightCat.Clouds == 1) {
+        $('#metClouds').addClass('metIFR');
+      } else {
+        $('#metClouds').addClass('metVFR');
+      }
     } else {
       $('#metClouds').remove()
     }
@@ -656,6 +741,25 @@ function translateMETAR(METAR) {
     } else if (obj.Remarks !== undefined){
     } else {
       $('#metRemarks').remove()
+    }
+
+    if (obj.FlightCat.Overall == 0) {
+      obj.FlightCat.Overall = "LIFR";
+      $('#metFlightCat').addClass('metLIFR');
+    } else if (obj.FlightCat.Overall == 1) {
+      obj.FlightCat.Overall = "IFR";
+      $('#metFlightCat').addClass('metIFR');
+    } else if (obj.FlightCat.Overall == 2) {
+      obj.FlightCat.Overall = "MVFR";
+      $('#metFlightCat').addClass('metMVFR');
+    } else {
+      obj.FlightCat.Overall = "VFR";
+      $('#metFlightCat').addClass('metVFR');
+    }
+    if (obj.FlightCat !== undefined) {
+      $('#metFlightCat').html($('#metFlightCat').html() + "<br>" + obj.FlightCat.Overall);
+    } else {
+      $('#metFlightCat').remove()
     }
   }
 }

@@ -45,6 +45,19 @@ html{
 
 .metResults{
   color: white;
+  background-color: #2ecc71;
+}
+
+.metMVFR {
+  background-color: #0D47A1;
+}
+
+.metIFR {
+  background-color: #c62828;
+}
+
+.metLIFR {
+  background-color: #D500F9;
 }
 
 .metBody{
