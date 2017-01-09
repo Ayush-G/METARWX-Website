@@ -4,12 +4,14 @@ var getMETARLocbtn = document.getElementById("getMETARLoc");
 var promise
 
 getMETARbtn.addEventListener('click', function(event) {
+    $('#ResultBox').remove()
     var station = document.getElementById("stationID").value;
     getMETAR(station);
 })
 
 getMETARLocbtn.addEventListener('click', function(event) {
     getLocation();
+
 })
 
 document.getElementById('stationID').onkeypress=function(e){
@@ -91,6 +93,7 @@ function showPosition(position) {
 
 
 function showError(error) {
+  $('#ResultBox').remove()
     switch(error.code) {
         case error.PERMISSION_DENIED:
             addAlert("Please enable geolocation to get closest data.")
@@ -198,7 +201,7 @@ function translateMETAR(METAR) {
     }
     var metTranslate = {};
     metTranslate.FlightCat = {};
-    //var metMETAR = "CYWG 172000Z 30015G25KT 3/4SM R36/4000FT/D R06/P6000FT/N VCFC -SN BLSN BKN004 OVC040 VV007 M05/M08 A2992 REFZRA WS RWY36"
+    //var metMETAR = "CYWG 172000Z 30015G25KT 1 3/4SM R36/4000FT/D R06/P6000FT/N VCFC -SN BLSN BKN004 OVC040 VV007 M05/M08 A2992 REFZRA WS RWY36"
     //var metRMK = "RMK SF5NS3 SLP134 PRESRR"
     //metTranslate.RawMETAR = metMETAR;
     //Station
@@ -249,6 +252,11 @@ function translateMETAR(METAR) {
             metTranslate.Winds.Gust = metWinds.slice(6,8);
         }
     }
+    if (metWinds.indexOf('MPS') != -1) {
+      metTranslate.Winds.Units = "m/s";
+    } else {
+      metTranslate.Winds.Units = "KTS"
+    }
     metMETAR = metMETAR.trim();
     if (metMETAR.split(' ')[0].length == 7) {
         metTranslate.Winds.Var = metMETAR.split(' ')[0]
@@ -258,54 +266,66 @@ function translateMETAR(METAR) {
     metMETAR = metMETAR.trim();
 
     //Visibility
+
     metTranslate.Visibility = {}
-    if (metMETAR.indexOf("SM") != -1) {
+    metTranslate.FlightCat.Visibility = 3;
+    if (metMETAR.indexOf("CAVOK") != -1) {
+      metTranslate.Visibility = "Visibility OK"
+      metTranslate.FlightCat.Visibility = 3;
+      metMETAR = metMETAR.replace("CAVOK", "")
+    } else {
+      if (metMETAR.indexOf("SM") != -1) {
         metTranslate.Visibility = metMETAR.split('SM')[0];
-        if ((parseInt(metTranslate.Visibility) <= 5) && (parseInt(metTranslate.Visibility) >= 3)) {
-          metTranslate.FlightCat.Visibility = 2;
-        } else if ((parseInt(metTranslate.Visibility) < 3) && (parseInt(metTranslate.Visibility) >= 1)) {
-          metTranslate.FlightCat.Visibility = 1;
-        } else if (parseInt(metTranslate.Visibility) < 1) {
+        if ((metTranslate.Visibility.indexOf("/") != -1) && (metTranslate.Visibility.indexOf("1 ") != 0)) {
           metTranslate.FlightCat.Visibility = 0;
         } else {
-          metTranslate.FlightCat.Visibility = 3;
-        }
-        metTranslate.Visibility = metTranslate.Visibility + "SM";
-        //metTranslate.Visibility['Metric'] = metTranslate.Visibility['Metric'] + "KM"
-        metMETAR = metMETAR.replace(metTranslate.Visibility, "");
-    } else {
-        metTranslate.Visibility = metMETAR.split(' ')[0];
-        metMETAR = metMETAR.replace(metTranslate.Visibility, "");
-        if (metTranslate.Visibility.indexOf("9999") != -1) {
-            metTranslate.Visibility = ">10 KM";
+          if ((parseInt(metTranslate.Visibility) <= 5) && (parseInt(metTranslate.Visibility) >= 3)) {
+            metTranslate.FlightCat.Visibility = 2;
+          } else if ((parseInt(metTranslate.Visibility) < 3) && (parseInt(metTranslate.Visibility) >= 1)) {
+            metTranslate.FlightCat.Visibility = 1;
+          } else if (parseInt(metTranslate.Visibility) < 1) {
+            metTranslate.FlightCat.Visibility = 0;
+          } else {
             metTranslate.FlightCat.Visibility = 3;
-        } else if (metTranslate.Visibility.indexOf("0000") != -1) {
-            metTranslate.Visibility = "<50 metres";
-            metTranslate.FlightCat.Visibility = 0;
-        } else if (metTranslate.Visibility.slice(1) == "000") {
-            metTranslate.Visibility = metTranslate.Visibility.charAt(0);
-
-            if ((parseInt(metTranslate.Visibility) <= 8) && (parseInt(metTranslate.Visibility) >= 4.8)) {
-              metTranslate.FlightCat.Visibility = 2;
-            } else if ((parseInt(metTranslate.Visibility) < 4.8) && (parseInt(metTranslate.Visibility) >= 1.6)) {
-              metTranslate.FlightCat.Visibility = 1;
-            } else if (parseInt(metTranslate.Visibility) < 1.6) {
-              metTranslate.FlightCat.Visibility = 0;
-            } else {
-              metTranslate.FlightCat.Visibility = 3;
-            }
-
-            metTranslate.Visibility = metTranslate.Visibility + "KM";
-        } else {
-            metTranslate.Visibility = metTranslate.Visibility + " metres";
-            metTranslate.FlightCat.Visibility = 0;
+          }
         }
-    };
+          metTranslate.Visibility = metTranslate.Visibility + "SM";
+          //metTranslate.Visibility['Metric'] = metTranslate.Visibility['Metric'] + "KM"
+          metMETAR = metMETAR.replace(metTranslate.Visibility, "");
+      } else {
+          metTranslate.Visibility = metMETAR.split(' ')[0];
+          metMETAR = metMETAR.replace(metTranslate.Visibility, "");
+          if (metTranslate.Visibility.indexOf("9999") != -1) {
+              metTranslate.Visibility = ">10 KM";
+              metTranslate.FlightCat.Visibility = 3;
+          } else if (metTranslate.Visibility.indexOf("0000") != -1) {
+              metTranslate.Visibility = "<50 metres";
+              metTranslate.FlightCat.Visibility = 0;
+          } else if (metTranslate.Visibility.slice(1) == "000") {
+              metTranslate.Visibility = metTranslate.Visibility.charAt(0);
+
+              if ((parseInt(metTranslate.Visibility) <= 8) && (parseInt(metTranslate.Visibility) >= 4.8)) {
+                metTranslate.FlightCat.Visibility = 2;
+              } else if ((parseInt(metTranslate.Visibility) < 4.8) && (parseInt(metTranslate.Visibility) >= 1.6)) {
+                metTranslate.FlightCat.Visibility = 1;
+              } else if (parseInt(metTranslate.Visibility) < 1.6) {
+                metTranslate.FlightCat.Visibility = 0;
+              } else {
+                metTranslate.FlightCat.Visibility = 3;
+              }
+
+              metTranslate.Visibility = metTranslate.Visibility + "KM";
+          } else {
+              metTranslate.Visibility = metTranslate.Visibility + " metres";
+              metTranslate.FlightCat.Visibility = 0;
+          }
+        };
+      };
     metMETAR = metMETAR.trim();
 
     //RVR
     metTranslate.RVR = "";
-    if (metMETAR.split(' ')[0].indexOf('/') != -1) {
+    if ((metMETAR.split(' ')[0].indexOf('/') != -1) && (metMETAR.split(' ')[0].indexOf('R') != -1)){
         metTranslate.RVR = {};
         metTranslate.FlightCat.RVR = 0;
         var x = 0;
@@ -573,9 +593,15 @@ function translateMETAR(METAR) {
         metRMK = metRMK.replace("PRESFR", "Pressure Falling Rapidly")
       } else if (metRMK.indexOf('PRESRR') != -1) {
         metRMK = metRMK.replace("PRESRR", "Pressure Rising Rapidly")
+      } else if (metRMK.indexOf('NOSIG') != -1) {
+        metRMK = metRMK.replace("NOSIG", "No Significant Weather")
       }
     }
-
+    if (metMETAR != "") {
+      if (metMETAR.indexOf('NOSIG') != -1) {
+        metMETAR = metMETAR.replace("NOSIG", "No Significant Weather")
+      }
+    }
     //Flight Categories
     metTranslate.FlightCat.Overall = 3;
     for (var key in metTranslate.FlightCat) {
@@ -643,12 +669,12 @@ function translateMETAR(METAR) {
       }
       $('#metTime').html($('#metTime').html()  + "<br>" + obj.Time['Day'] + "/" + (TimeMonth) + "/" + (metTime.getUTCFullYear()) + " " + obj.Time['Hour'] + 'GMT' + obj.Time['Displacement'] + ' Retrieved: ' + obj.RetrieveTime + ' Local');
       if (obj.Winds['Gust'] !== undefined) {
-        $('#metWinds').html($('#metWinds').html() + "<br>From " + obj.Winds['Direction'] + " degrees" + " @ " + obj.Winds['Speed'] + " gusting to " + obj.Winds['Gust'] + "KT");
+        $('#metWinds').html($('#metWinds').html() + "<br>From " + obj.Winds['Direction'] + " degrees" + " @ " + obj.Winds['Speed'] + " gusting to " + obj.Winds['Gust'] + " " + obj.Winds['Units']);
       } else {
       	if (obj.Winds === "Calm") {
         	$('#metWinds').html($('#metWinds').html() + "Calm");
         } else {
-        	$('#metWinds').html($('#metWinds').html() + "<br>From " + obj.Winds['Direction'] + " degrees" + " @ " + obj.Winds['Speed'] + "KT");
+        	$('#metWinds').html($('#metWinds').html() + "<br>From " + obj.Winds['Direction'] + " degrees" + " @ " + obj.Winds['Speed'] + " " + obj.Winds['Units']);
         }
     }
       $('#metVisibility').html($('#metVisibility').html() + "<br>" + obj['Visibility']);
@@ -688,9 +714,13 @@ function translateMETAR(METAR) {
       $('#metWx').remove();
     }
     if ((obj.Clouds !== undefined) || (obj.VV !== undefined)) {
-      if (obj.Clouds !== undefined) {
-        for (var cld in obj['Clouds']) {
+      if ((obj.Clouds === "No Significant Clouds") || (obj.Clouds === "No Cloud Detected")) {
+        $('#metClouds').html($('#metClouds').html() + "<br>" + obj.Clouds);
+      } else {
+        if (obj.Clouds !== undefined) {
+          for (var cld in obj['Clouds']) {
           $('#metClouds').html($('#metClouds').html() + "<br>" + obj.Clouds[cld]['Layer'] + " @ " + obj.Clouds[cld]['Height'] + "ft");
+          }
         }
       }
 
