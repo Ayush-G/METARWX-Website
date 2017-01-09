@@ -166,8 +166,7 @@ var dictClouds = {'CLR': 'Sky Clear',
                 'FEW': 'Few Clouds',
                 'SCT': 'Scattered Clouds',
                 'BKN': 'Broken Clouds',
-                'OVC': 'Overcast Clouds',
-                'CAVOK': 'Ceiling and Visibility OK'};
+                'OVC': 'Overcast Clouds'};
 
 
 var dictCloudType = {'CB': 'Cumulonimbus',
@@ -273,6 +272,7 @@ function translateMETAR(METAR) {
       metTranslate.Visibility = "Visibility OK"
       metTranslate.FlightCat.Visibility = 3;
       metMETAR = metMETAR.replace("CAVOK", "")
+      metTranslate.Clouds = 'Clouds OK'
     } else {
       if (metMETAR.indexOf("SM") != -1) {
         metTranslate.Visibility = metMETAR.split('SM')[0];
@@ -406,7 +406,7 @@ function translateMETAR(METAR) {
     }
     metMETAR = metMETAR.trim()
     //Clouds
-    metTranslate.Clouds = {};
+
     metTranslate.FlightCat.Ceiling = 3;
     if (metMETAR.split(' ')[0].indexOf("NSC") != -1) {
         metTranslate.Clouds = "No Significant Clouds";
@@ -418,7 +418,9 @@ function translateMETAR(METAR) {
         metTranslate.FlightCat.Ceiling = 3;
     }
     var x = 0;
-
+    if (metMETAR.split(' ')[0].slice(0,3) in dictClouds) {
+      metTranslate.Clouds = {};
+    }
     while (metMETAR.split(' ')[0].slice(0,3) in dictClouds) {
         metTranslate.Clouds[x] = {};
         metClouds = metMETAR.split(' ')[0];
@@ -714,8 +716,10 @@ function translateMETAR(METAR) {
       $('#metWx').remove();
     }
     if ((obj.Clouds !== undefined) || (obj.VV !== undefined)) {
-      if ((obj.Clouds === "No Significant Clouds") || (obj.Clouds === "No Cloud Detected")) {
+      if ((obj.Clouds === "No Significant Clouds") || (obj.Clouds === "No Cloud Detected") || (obj.Clouds === "Clouds OK" )) {
         $('#metClouds').html($('#metClouds').html() + "<br>" + obj.Clouds);
+      } else if (obj.Clouds[0].Layer === "Sky Clear") {
+        $('#metClouds').html($('#metClouds').html() + "<br>" + obj.Clouds[0].Layer);
       } else {
         if (obj.Clouds !== undefined) {
           for (var cld in obj['Clouds']) {
