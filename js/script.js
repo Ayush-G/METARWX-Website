@@ -679,6 +679,9 @@ function translateMETAR(METAR) {
         	$('#metWinds').html($('#metWinds').html() + "<br>From " + obj.Winds['Direction'] + " degrees" + " @ " + obj.Winds['Speed'] + " " + obj.Winds['Units']);
         }
     }
+    if (obj.Winds['Var'] !== undefined) {
+      $('#metWinds').html($('#metWinds').html() + "<br>" + obj.Winds.Var + " degrees")
+    }
       $('#metVisibility').html($('#metVisibility').html() + "<br>" + obj['Visibility']);
       if (obj.FlightCat.Visibility == 0) {
         $('#metVisibility').addClass('metLIFR');
