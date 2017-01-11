@@ -200,8 +200,8 @@ function translateMETAR(METAR) {
     }
     var metTranslate = {};
     metTranslate.FlightCat = {};
-    //var metMETAR = "CYWG 172000Z 30015G25KT 1 3/4SM R36/4000FT/D R06/P6000FT/N VCFC -SN BLSN BKN004 OVC040 VV007 M05/M08 A2992 REFZRA WS RWY36"
-    //var metRMK = "RMK SF5NS3 SLP134 PRESRR"
+    //var metMETAR = "CYWG 172000Z 30015G25KT 1 3/4SM R36/4000FT/D R06/P6000FT/N VCFC -SN BLSN VV008 M05/M08 A2992 REFZRA WS RWY36"
+    //var metRMK = "RMK SN8 SLP134 PRESRR"
     //metTranslate.RawMETAR = metMETAR;
     //Station
     metTranslate.Station = metMETAR.slice(0,4);
@@ -471,6 +471,7 @@ function translateMETAR(METAR) {
         while (metTranslate.VV.charAt(0) === '0') {
             metTranslate.VV = metTranslate.VV.substr(1);
         };
+        console.log(metTranslate.VV)
         metTranslate.VV = metTranslate.VV + "00ft";
     }
     metMETAR = metMETAR.trim();
@@ -718,7 +719,7 @@ function translateMETAR(METAR) {
     } else {
       $('#metWx').remove();
     }
-    if ((obj.Clouds !== undefined) || (obj.VV !== undefined)) {
+    if (obj.Clouds !== undefined)  {
       if ((obj.Clouds === "No Significant Clouds") || (obj.Clouds === "No Cloud Detected") || (obj.Clouds === "Clouds OK" )) {
         $('#metClouds').html($('#metClouds').html() + "<br>" + obj.Clouds);
       } else if (obj.Clouds[0].Layer === "Sky Clear") {
@@ -730,13 +731,6 @@ function translateMETAR(METAR) {
           }
         }
       }
-
-      if (obj.VV !== undefined) {
-        $('#metClouds').html($('#metClouds').html() + "<br>Vertical Visibility: " + obj['VV']);
-      }
-      for (var cdet in obj['CloudDet']) {
-        $('#metClouds').html($('#metClouds').html() + "<br>" + obj.CloudDet[cdet]['Coverage'] + " of " + obj.CloudDet[cdet]['Type']);
-      }
       if (obj.FlightCat.Ceiling == 0) {
         $('#metClouds').addClass('metLIFR');
       } else if (obj.FlightCat.Ceiling == 2) {
@@ -746,10 +740,19 @@ function translateMETAR(METAR) {
       } else {
         $('#metClouds').addClass('metVFR');
       }
-    } else {
+    }
+    if (obj.VV !== undefined) {
+      $('#metClouds').html($('#metClouds').html() + "<br>Vertical Visibility: " + obj['VV']);
+      $('#metClouds').addClass('metLIFR');
+    }
+    if (obj['CloudDet'] !== undefined) {
+      for (var cdet in obj['CloudDet']) {
+        $('#metClouds').html($('#metClouds').html() + "<br>" + obj.CloudDet[cdet]['Coverage'] + " of " + obj.CloudDet[cdet]['Type']);
+      }
+    }
+    if (obj.VV == undefined && obj.Clouds == undefined) {
       $('#metClouds').remove()
     }
-
     $('#metTempDew').html($('#metTempDew').html() + "<br>" + "Temperature: " + obj.Temperature + "<br>Dewpoint: " + obj.Dewpoint);
 
     $('#metPressure').html($('#metPressure').html() + "<br>" + obj.Altimeter);
