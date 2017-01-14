@@ -246,6 +246,13 @@ function translateMETAR(METAR) {
         metTranslate.Winds.Speed = metWinds.slice(3,5);
     } else {
         metTranslate.Winds.Direction = metWinds.slice(0,3);
+        metTranslate.Winds.Direction = parseInt(metTranslate.Winds.Direction, 10)
+        function degToCompass(num) {
+            var val = Math.floor((num / 22.5) + 0.5);
+            var arr = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+            return arr[(val % 16)];
+        }
+        metTranslate.Winds.Cardinal = degToCompass(parseInt(metTranslate.Winds.Direction))
         metTranslate.Winds.Speed = metWinds.slice(3,5);
         if (metWinds.indexOf("G") != -1) {
             metTranslate.Winds.Gust = metWinds.slice(6,8);
@@ -276,6 +283,7 @@ function translateMETAR(METAR) {
     } else {
       if (metMETAR.indexOf("SM") != -1) {
         metTranslate.Visibility = metMETAR.split('SM')[0];
+        metTranslate.VisibilityOtherUnit = Math.round(parseInt(metTranslate.Visibility)*1.61) + 'KM'
         if ((metTranslate.Visibility.indexOf("/") != -1) && (metTranslate.Visibility.indexOf("1 ") != 0)) {
           metTranslate.FlightCat.Visibility = 0;
         } else {
@@ -297,13 +305,15 @@ function translateMETAR(METAR) {
           metMETAR = metMETAR.replace(metTranslate.Visibility, "");
           if (metTranslate.Visibility.indexOf("9999") != -1) {
               metTranslate.Visibility = ">10 KM";
+              metTranslate.VisibilityOtherUnit = ">6.2SM"
               metTranslate.FlightCat.Visibility = 3;
           } else if (metTranslate.Visibility.indexOf("0000") != -1) {
               metTranslate.Visibility = "<50 metres";
+              metTranslate.VisibilityOtherUnit = "0SM"
               metTranslate.FlightCat.Visibility = 0;
           } else if (metTranslate.Visibility.slice(1) == "000") {
               metTranslate.Visibility = metTranslate.Visibility.charAt(0);
-
+              metTranslate.VisibilityOtherUnit = Math.round(parseInt(metTranslate.Visibility)*0.62) + "SM";
               if ((parseInt(metTranslate.Visibility) <= 8) && (parseInt(metTranslate.Visibility) >= 4.8)) {
                 metTranslate.FlightCat.Visibility = 2;
               } else if ((parseInt(metTranslate.Visibility) < 4.8) && (parseInt(metTranslate.Visibility) >= 1.6)) {
@@ -316,6 +326,7 @@ function translateMETAR(METAR) {
 
               metTranslate.Visibility = metTranslate.Visibility + "KM";
           } else {
+              metTranslate.VisibilityOtherUnit = Math.round(parseInt(metTranslate.Visibility)*3.28) + "Ft";
               metTranslate.Visibility = metTranslate.Visibility + " metres";
               metTranslate.FlightCat.Visibility = 0;
           }
@@ -480,9 +491,31 @@ function translateMETAR(METAR) {
     metTempDew = metMETAR.split(' ')[0];
     metMETAR = metMETAR.replace(metTempDew, "");
     metTranslate.Temperature = metTempDew.split('/')[0];
-    metTranslate.Temperature = metTranslate.Temperature.replace('M', '-') + 'C';
+    metTranslate.Temperature = metTranslate.Temperature.replace('M', '-')
     metTranslate.Dewpoint = metTempDew.split('/')[1];
-    metTranslate.Dewpoint = metTranslate.Dewpoint.replace('M', '-') + 'C';
+    metTranslate.Dewpoint = metTranslate.Dewpoint.replace('M', '-')
+    if (metTranslate.Temperature.charAt(0) === '-') {
+      if (metTranslate.Temperature.charAt(1) === '0') {
+          metTranslate.Temperature = parseInt(metTranslate.Temperature, 10)
+      }
+    } else {
+      if (metTranslate.Temperature.charAt(0) === '0') {
+          metTranslate.Temperature = parseInt(metTranslate.Temperature, 10)
+      }
+    }
+    if (metTranslate.Dewpoint.charAt(0) === '-') {
+      if (metTranslate.Dewpoint.charAt(1) === '0') {
+          metTranslate.Dewpoint = parseInt(metTranslate.Dewpoint, 10)
+      }
+    } else {
+      if (metTranslate.Dewpoint.charAt(0) === '0') {
+          metTranslate.Dewpoint = parseInt(metTranslate.Dewpoint, 10)
+      }
+    }
+    metTranslate.TemperatureFarenheit = Math.round((parseInt(metTranslate.Temperature)*1.8+32)) + String.fromCharCode(176) + 'F';
+    metTranslate.DewpointFarenheit = Math.round((parseInt(metTranslate.Dewpoint)*1.8+32)) + String.fromCharCode(176) + 'F';
+    metTranslate.Temperature = metTranslate.Temperature + String.fromCharCode(176) + 'C';
+    metTranslate.Dewpoint = metTranslate.Dewpoint + String.fromCharCode(176) + 'C';
     metMETAR = metMETAR.trim();
 
     //Altimeter
@@ -533,19 +566,23 @@ function translateMETAR(METAR) {
     //Remarks
     metRMK = metRMK.replace('RMK', '');
     metRMK = metRMK.trim();
+
     //Cloud Details
+
     if (metRMK != "") {
-        metRMK = metRMK.trim();
-        var CloudDet = metRMK.split(' ')[0]
-        metRMK = metRMK.replace(CloudDet, '');
-        var x = 0;
-        metTranslate.CloudDet = {}
-        while (CloudDet.split(/\d+/)[x] in dictCloudType) {
-            metTranslate.CloudDet[x] = {}
-            metTranslate.CloudDet[x].Type = dictCloudType[CloudDet.split(/\d+/)[x]]
-            metTranslate.CloudDet[x].Coverage = CloudDet.split(/\D+/)[x+1] + '/8';
-            x++;
-            }
+      if (metRMK.split(' ')[0].split(/\d+/)[0] in dictCloudType) {
+          metRMK = metRMK.trim();
+          var CloudDet = metRMK.split(' ')[0]
+          metRMK = metRMK.replace(CloudDet, '');
+          var x = 0;
+          metTranslate.CloudDet = {}
+          while (CloudDet.split(/\d+/)[x] in dictCloudType) {
+              metTranslate.CloudDet[x] = {}
+              metTranslate.CloudDet[x].Type = dictCloudType[CloudDet.split(/\d+/)[x]]
+              metTranslate.CloudDet[x].Coverage = CloudDet.split(/\D+/)[x+1] + '/8';
+              x++;
+          }
+      }
     }
     metRMK = metRMK.trim();
     if (metRMK != "") {
@@ -672,18 +709,23 @@ function translateMETAR(METAR) {
       }
       $('#metTime').html($('#metTime').html()  + "<br>" + obj.Time['Day'] + "/" + (TimeMonth) + "/" + (metTime.getUTCFullYear()) + " " + obj.Time['Hour'] + 'GMT' + obj.Time['Displacement'] + ' Retrieved: ' + obj.RetrieveTime + ' Local');
       if (obj.Winds['Gust'] !== undefined) {
-        $('#metWinds').html($('#metWinds').html() + "<br>From " + obj.Winds['Direction'] + " degrees" + " @ " + obj.Winds['Speed'] + " gusting to " + obj.Winds['Gust'] + " " + obj.Winds['Units']);
+        $('#metWinds').html($('#metWinds').html() + "<br>From " + obj.Winds['Direction'] + " degrees" + " (" + obj.Winds.Cardinal + ")" + " at " + obj.Winds['Speed'] + " gusting to " + obj.Winds['Gust'] + " " + obj.Winds['Units']);
       } else {
       	if (obj.Winds === "Calm") {
-        	$('#metWinds').html($('#metWinds').html() + "Calm");
+        	$('#metWinds').html($('#metWinds').html() + "<br>Calm");
+        } else if (obj.Winds.Direction === "Variable") {
+          $('#metWinds').html($('#metWinds').html() + "<br>From Variable Direction at " + obj.Winds['Speed'] + " " + obj.Winds['Units'])
         } else {
-        	$('#metWinds').html($('#metWinds').html() + "<br>From " + obj.Winds['Direction'] + " degrees" + " @ " + obj.Winds['Speed'] + " " + obj.Winds['Units']);
+        	$('#metWinds').html($('#metWinds').html() + "<br>From " + obj.Winds['Direction'] + " degrees" + " (" + obj.Winds.Cardinal + ")" + " at " + obj.Winds['Speed'] + " " + obj.Winds['Units']);
         }
     }
     if (obj.Winds['Var'] !== undefined) {
       $('#metWinds').html($('#metWinds').html() + "<br>" + obj.Winds.Var + " degrees")
     }
       $('#metVisibility').html($('#metVisibility').html() + "<br>" + obj['Visibility']);
+      if (obj.VisibilityOtherUnit !== undefined) {
+        $('#metVisibility').html($('#metVisibility').html() + " (" + obj.VisibilityOtherUnit + ")");
+      }
       if (obj.FlightCat.Visibility == 0) {
         $('#metVisibility').addClass('metLIFR');
       } else if (obj.FlightCat.Visibility == 2) {
@@ -753,7 +795,7 @@ function translateMETAR(METAR) {
     if (obj.VV == undefined && obj.Clouds == undefined) {
       $('#metClouds').remove()
     }
-    $('#metTempDew').html($('#metTempDew').html() + "<br>" + "Temperature: " + obj.Temperature + "<br>Dewpoint: " + obj.Dewpoint);
+    $('#metTempDew').html($('#metTempDew').html() + "<br>" + "Temperature: " + obj.Temperature + " (" + obj.TemperatureFarenheit + ")" + "<br>Dewpoint: " + obj.Dewpoint + " (" + obj.DewpointFarenheit + ")" );
 
     $('#metPressure').html($('#metPressure').html() + "<br>" + obj.Altimeter);
     if (obj.SLP !== undefined) {
