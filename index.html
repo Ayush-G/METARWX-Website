@@ -53,17 +53,16 @@
           </ul>
         </div>
       </nav>
-      <input class="form-control" id="stationID" type="text" placeholder="ICAO" maxlength="4" data-error="Invalid">
-      <button class="btn btn-outline-primary" type="button" id="getMETAR">Submit</button>
-      <button class="btn btn-outline-success" type="button" id="getMETARLoc">Location</button>
-
+      <div class="search">
+        <input class="form-control" id="stationID" type="text" placeholder="ICAO" maxlength="4" data-error="Invalid">
+        <button class="btn btn-outline-primary" type="button" id="getMETAR">Submit</button>
+        <button class="btn btn-outline-success" type="button" id="getMETARLoc">Location</button>
+      </div>
+      <div id="loading" style="background-color: #0275d8;">
+      </div>
       <section class="bg-primary">
-        <div id="metMain" class="metBody">
-          <div id="airportTitle">Airport Title</div>
-          <div id="airportInfo">Airport Information</div>
-          <div id="RawMETAR">Data Not Shown</div>
-          <div id="demo"><strong>Decoded METAR</strong><br></div>
-        </div>
+
+        <div id="metMain" class="metBody"></div>
       </section>
 
       <section id="metResults">

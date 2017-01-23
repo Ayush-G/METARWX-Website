@@ -48,12 +48,19 @@ function onlineRequest(url, headers="") {
 
 
 function getMETAR(params) {
+    showLoading();
     url = "https://avwx.rest/api/metar/" + params + "?options=info,translate";
     console.log(url);
     onlineRequest(url).then(function(result) {
         result = JSON.parse(result);
         if (result["Raw-Report"] !== undefined) {
             var retrievedMETAR = result["Raw-Report"];
+            $("#metMain").append(
+              '<div id="airportTitle"></div>' +
+              '<div id="airportInfo"></div>' +
+              '<div id="RawMETAR"></div>' +
+              '<div id="demo"><strong></strong><br></div>'
+            )
             if (result.Info["Name"].split(' ')[0] === result.Info["City"]){
               document.getElementById("airportTitle").innerHTML = result.Info["Name"];
             } else {
@@ -66,10 +73,6 @@ function getMETAR(params) {
             translateMETAR(retrievedMETAR);
         } else {
             addAlert("Invalid ICAO Code");
-            document.getElementById("airportTitle").innerHTML = "";
-            document.getElementById("airportInfo").innerHTML = "";
-            document.getElementById("RawMETAR").innerHTML = "";
-            document.getElementById("demo").innerHTML = "";
             $('#ResultBox').remove();
         };
     }).catch(function(error) {
@@ -125,9 +128,29 @@ function addAlert(message) {
     });
 }
 
+function showLoading(){
+  $('#ResultBox').remove();
+  $('#metMain').empty();
+  $('#loading').empty();
+  $('#loading').append(
+    '<div class="sk-cube-grid">' +
+      '<div class="sk-cube sk-cube1"></div>' +
+      '<div class="sk-cube sk-cube2"></div>' +
+      '<div class="sk-cube sk-cube3"></div>' +
+      '<div class="sk-cube sk-cube4"></div>' +
+      '<div class="sk-cube sk-cube5"></div>' +
+      '<div class="sk-cube sk-cube6"></div>' +
+      '<div class="sk-cube sk-cube7"></div>' +
+      '<div class="sk-cube sk-cube8"></div>' +
+      '<div class="sk-cube sk-cube9"></div>' +
+    '</div>'
+  );
+}
 
+function hideLoading(){
+  $('#loading').empty();
+}
 //Translate Script Below
-
 var dictDescriptors = {'-': 'Light',
                     '+': 'Heavy',
                     'MI': 'Shallow',
@@ -200,7 +223,7 @@ function translateMETAR(METAR) {
     }
     var metTranslate = {};
     metTranslate.FlightCat = {};
-    //var metMETAR = "CYWG 172000Z 30015G25KT 1 3/4SM R36/4000FT/D R06/P6000FT/N VCFC -SN BLSN VV008 M05/M08 A2992 REFZRA WS RWY36"
+    //var metMETAR = "CYWG 172000Z 30015G25KT 1 3/4SM R25R/0500 R06/P6000FT/N VCFC -SN BLSN VV008 M05/M08 A2992 REFZRA WS RWY36"
     //var metRMK = "RMK SN8 SLP134 PRESRR"
     //metTranslate.RawMETAR = metMETAR;
     //Station
@@ -326,7 +349,10 @@ function translateMETAR(METAR) {
 
               metTranslate.Visibility = metTranslate.Visibility + "KM";
           } else {
-              metTranslate.VisibilityOtherUnit = Math.round(parseInt(metTranslate.Visibility)*3.28) + "Ft";
+              while (metTranslate.Visibility.charAt(0) === '0') {
+                  metTranslate.Visibility = metTranslate.Visibility.substr(1);
+              }
+              metTranslate.VisibilityOtherUnit = Math.round(parseInt(metTranslate.Visibility)*3.28) + "ft";
               metTranslate.Visibility = metTranslate.Visibility + " metres";
               metTranslate.FlightCat.Visibility = 0;
           }
@@ -343,24 +369,37 @@ function translateMETAR(METAR) {
         do {
             metTranslate.RVR[x] = {}
             metTranslate.RVR[x].Runway = metMETAR.split('/')[0].slice(1);
-            metTranslate.RVR[x].Visibility = metMETAR.split('/')[1];
+            console.log(metMETAR.split('/')[1]);
+            if (metMETAR.split('/')[1].indexOf(' ') === -1){
+              metTranslate.RVR[x].Visibility = metMETAR.split('/')[1];
+            } else {
+              metTranslate.RVR[x].Visibility = metMETAR.split(' ')[0].slice(-4) + 'm'
+              while (metTranslate.RVR[x].Visibility.charAt(0) === '0') {
+                  metTranslate.RVR[x].Visibility = metTranslate.RVR[x].Visibility.substr(1);
+              }
+            }
             if (metTranslate.RVR[x].Visibility.indexOf('V') != -1) {
                 metTranslate.RVR[x].Visibility = "Between " + metTranslate.RVR[x].Visibility.slice(0,4) + " and " + metTranslate.RVR[x].Visibility.slice(5);
             }
             if (metTranslate.RVR[x].Visibility.indexOf('P') != -1) {
                 metTranslate.RVR[x].Visibility = metTranslate.RVR[x].Visibility.replace('P', 'Greater than ');
             }
-            metTranslate.RVR[x].Tendency = metMETAR.split('/')[2].split(' ')[0];
-            switch(metTranslate.RVR[x].Tendency) {
-                case "U":
-                    metTranslate.RVR[x].Tendency = "Upwards"
-                    break;
-                case "N":
-                    metTranslate.RVR[x].Tendency = "No Change"
-                    break;
-                case "D":
-                    metTranslate.RVR[x].Tendency = "Downwards"
-                    break;
+            console.log(metMETAR.split('/')[2])
+            if (metMETAR.split('/')[1].indexOf(' ') === -1){
+              metTranslate.RVR[x].Tendency = metMETAR.split('/')[2].split(' ')[0];
+              switch(metTranslate.RVR[x].Tendency) {
+                  case "U":
+                      metTranslate.RVR[x].Tendency = "Upwards"
+                      break;
+                  case "N":
+                      metTranslate.RVR[x].Tendency = "No Change"
+                      break;
+                  case "D":
+                      metTranslate.RVR[x].Tendency = "Downwards"
+                      break;
+              }
+            } else {
+              metTranslate.RVR[x].Tendency = "Unknown"
             }
             metMETAR = metMETAR.split(/ (.+)/)[1];
             x++;
@@ -482,8 +521,12 @@ function translateMETAR(METAR) {
         while (metTranslate.VV.charAt(0) === '0') {
             metTranslate.VV = metTranslate.VV.substr(1);
         };
-        console.log(metTranslate.VV)
-        metTranslate.VV = metTranslate.VV + "00ft";
+        if (metTranslate.VV.indexOf('///') != -1) {
+          metTranslate.VV = "Unknown"
+        } else {
+          metTranslate.VV = metTranslate.VV + "00ft";
+        }
+
     }
     metMETAR = metMETAR.trim();
 
@@ -841,4 +884,5 @@ function translateMETAR(METAR) {
       $('#metFlightCat').remove()
     }
   }
+  hideLoading();
 }
