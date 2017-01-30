@@ -28,6 +28,20 @@ body{
 
 #stationID{
   width: 80px;
+  text-transform: uppercase;
+}
+
+#tafStationID{
+  width: 80px;
+  text-transform: uppercase;
+}
+
+#tafStationID, #getTAF, #getTAFLoc{
+  display: inline;
+}
+
+#tafMain{
+  color: white;
 }
 
 .box{
@@ -69,11 +83,6 @@ body{
 .metBody{
     color: white;
 }
-
-#stationID{
-    text-transform: uppercase;
-}
-
 
 /*Loading animation*/
 .sk-cube-grid {
