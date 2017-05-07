@@ -245,6 +245,4 @@ function translateTAF(TAF) {
   tafTranslate.Validity.End.Time = TAFsplit[0].slice(15,17) + ":00 Z";
   TAFsplit[0] = TAFsplit[0].slice(18);
   TAFsplit[0] = TAFsplit[0].trim();
-  console.log(tafTranslate)
-  console.log(TAFsplit[0]);
 }
