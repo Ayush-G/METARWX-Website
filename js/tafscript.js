@@ -71,6 +71,7 @@ function getTAF(params) {
             document.getElementById("RawTAF").innerHTML = retrievedTAF;
             document.getElementById("demo").innerHTML = "";
             //translateTAF(retrievedTAF);
+            translateTAF(retrievedTAF);
             hideLoading();
         } else {
             addAlert("Invalid ICAO Code");
@@ -207,3 +208,43 @@ var dictCloudType = {'CB': 'Cumulonimbus',
                     'FG': 'Fog',
                     'BR': 'Mist',
                     'SN': 'Snow'};
+
+
+
+function translateTAF(TAF) {
+  //var TAF = "TAF CYOW 062338Z 0700/0724 25006KT 6SM -RA BR BKN010 OVC025 TEMPO 0700/0704 3SM SHRA BR BKN005 OVC010 FM070400 29010KT 4SM -RA BR OVC005 TEMPO 0704/0713 P6SM -DZ OVC010 FM071300 28015KT P6SM -DZ OVC012 TEMPO 0713/0716 3SM -RA BR OVC006 FM071600 28012KT P6SM -SHRA OVC020 FM071900 29010KT P6SM BKN030 BECMG 0720/0723 04010KT RMK NXT FCST BY 070300Z"
+  var TAFarr = TAF.split(' ');
+  var x = 0;
+  var TAFsplit = [];
+  var tafTranslate = {};
+  for(var i=0; i < TAFarr.length; i++){
+    if (TAFarr[i].indexOf('FM') != -1 || TAFarr[i].indexOf('BECMG') != -1 || TAFarr[i] === 'TEMPO'|| TAFarr[i] === 'RMK'){
+      x++;
+    };
+    if(TAFsplit[x] == undefined){
+      TAFsplit[x] = TAFarr[i];
+    } else {
+      TAFsplit[x] += " " + TAFarr[i];
+    };
+  }
+  TAFsplit[0] = TAFsplit[0].replace('TAF', "");
+  TAFsplit[0] = TAFsplit[0].replace('AMD', "");
+  TAFsplit[0] = TAFsplit[0].slice(5);
+  TAFsplit[0] = TAFsplit[0].trim();
+
+  //Publish time and validity period
+  tafTranslate.Publish = {}
+  tafTranslate.Publish.Date = TAFsplit[0].slice(0,2);
+  tafTranslate.Publish.Time = TAFsplit[0].slice(2,4) + ":" + TAFsplit[0].slice(4,6) + " Z";
+  tafTranslate.Validity = {}
+  tafTranslate.Validity.Start = {}
+  tafTranslate.Validity.Start.Date = TAFsplit[0].slice(8,10);
+  tafTranslate.Validity.Start.Time = TAFsplit[0].slice(10,12) + ":00 Z";
+  tafTranslate.Validity.End = {};
+  tafTranslate.Validity.End.Date = TAFsplit[0].slice(13,15);
+  tafTranslate.Validity.End.Time = TAFsplit[0].slice(15,17) + ":00 Z";
+  TAFsplit[0] = TAFsplit[0].slice(18);
+  TAFsplit[0] = TAFsplit[0].trim();
+  console.log(tafTranslate)
+  console.log(TAFsplit[0]);
+}
