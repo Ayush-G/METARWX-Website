@@ -245,4 +245,38 @@ function translateTAF(TAF) {
   tafTranslate.Validity.End.Time = TAFsplit[0].slice(15,17) + ":00 Z";
   TAFsplit[0] = TAFsplit[0].slice(18);
   TAFsplit[0] = TAFsplit[0].trim();
-}
+  var a = 0;
+
+  for(var i=0; i < TAFsplit.length; i++) {
+    tafTranslate[a] = {};
+    if(TAFsplit[a].indexOf('FM') != -1) {
+      tafTranslate[a].From = {};
+      tafTranslate[a].From.Date = TAFsplit[a].slice(2,4);
+      tafTranslate[a].From.Time = TAFsplit[a].slice(4,8);
+      TAFsplit[a] = TAFsplit[a].slice(9);
+    } else if(TAFsplit[a].indexOf('BECMG') != -1) {
+      tafTranslate[a]['BECMG'] = {};
+      tafTranslate[a]['BECMG'].Date1 = TAFsplit[a].slice(6,8);
+      tafTranslate[a]['BECMG'].Time1 = TAFsplit[a].slice(8,10);
+      tafTranslate[a]['BECMG'].Date2 = TAFsplit[a].slice(11,13);
+      tafTranslate[a]['BECMG'].Time2 = TAFsplit[a].slice(13,15);
+      TAFsplit[a] = TAFsplit[a].slice(16);
+    } else if(TAFsplit[a].indexOf('TEMPO') != -1){
+      tafTranslate[a]['TEMPO'] = {};
+      tafTranslate[a]['TEMPO'].Date1 = TAFsplit[a].slice(6,8);
+      tafTranslate[a]['TEMPO'].Time1 = TAFsplit[a].slice(8,10);
+      tafTranslate[a]['TEMPO'].Date2 = TAFsplit[a].slice(11,13);
+      tafTranslate[a]['TEMPO'].Time2 = TAFsplit[a].slice(13,15);
+      TAFsplit[a] = TAFsplit[a].slice(16);
+    } else if(TAFsplit[a].indexOf('RMK') != -1 ){
+      tafTranslate[a]['Next FCST'] = {};
+      tafTranslate[a]['Next FCST'].Date = TAFsplit[a].slice(-7,-5);
+      tafTranslate[a]['Next FCST'].Time = TAFsplit[a].slice(-5);
+    }
+    a++
+  }
+    //TODO:decode
+
+  console.log(tafTranslate)
+  console.log(TAFsplit)
+  }
