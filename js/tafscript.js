@@ -217,6 +217,7 @@ function translateTAF(TAF) {
   var x = 0;
   var TAFsplit = [];
   var tafTranslate = {};
+
   for(var i=0; i < TAFarr.length; i++){
     if (TAFarr[i].indexOf('FM') != -1 || TAFarr[i].indexOf('BECMG') != -1 || TAFarr[i] === 'TEMPO'|| TAFarr[i] === 'RMK'){
       x++;
@@ -249,6 +250,7 @@ function translateTAF(TAF) {
 
   for(var i=0; i < TAFsplit.length; i++) {
     tafTranslate[a] = {};
+    tafTranslate[a].FlightCat = {};
     if(TAFsplit[a].indexOf('FM') != -1) {
       tafTranslate[a].From = {};
       tafTranslate[a].From.Date = TAFsplit[a].slice(2,4);
@@ -273,10 +275,221 @@ function translateTAF(TAF) {
       tafTranslate[a]['Next FCST'].Date = TAFsplit[a].slice(-7,-5);
       tafTranslate[a]['Next FCST'].Time = TAFsplit[a].slice(-5);
     }
-    a++
-  }
     //TODO:decode
+    if(TAFsplit[a].split(' ')[0].indexOf('MPS') != -1 || TAFsplit[a].split(' ')[0].indexOf('KT') != -1){
+      tafTranslate[a].Winds = {};
+      var tafWinds = TAFsplit[a].split(' ')[0];
+      TAFsplit[a] = TAFsplit[a].replace(tafWinds, "");
+      if (tafWinds == "00000KT") {
+          tafTranslate[a].Winds = "Calm";
+      }else if (tafWinds.indexOf("VRB") != -1) {
+          tafTranslate[a].Winds.Direction = "Variable";
+          tafTranslate[a].Winds.Speed = tafWinds.slice(3,5);
+      } else {
+          tafTranslate[a].Winds.Direction = tafWinds.slice(0,3);
+          tafTranslate[a].Winds.Direction = parseInt(tafTranslate[a].Winds.Direction, 10)
+          function degToCompass(num) {
+              var val = Math.floor((num / 22.5) + 0.5);
+              var arr = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+              return arr[(val % 16)];
+          }
+          tafTranslate[a].Winds.Cardinal = degToCompass(parseInt(tafTranslate[a].Winds.Direction))
+          tafTranslate[a].Winds.Speed = tafWinds.slice(3,5);
+          if (tafWinds.indexOf("G") != -1) {
+              tafTranslate[a].Winds.Gust = tafWinds.slice(6,8);
+          }
+      }
+      if (tafWinds.indexOf('MPS') != -1) {
+        tafTranslate[a].Winds.Units = "m/s";
+      } else {
+        tafTranslate[a].Winds.Units = "KTS"
+      }
+      TAFsplit[a] = TAFsplit[a].trim();
+      if (TAFsplit[a].split(' ')[0].length == 7) {
+          tafTranslate[a].Winds.Var = TAFsplit[a].split(' ')[0]
+          TAFsplit[a] = TAFsplit[a].replace(tafTranslate.Winds.Var, '')
+          tafTranslate[a].Winds.Var = "Variable Between: " + TAFsplit[a].Winds.Var.slice(0,3) + " and " + TAFsplit[a].Winds.Var.slice(4)
+      }
+    }
+    TAFsplit[a] = TAFsplit[a].trim()
+    //Visibility
+    if(TAFsplit[a].split(' ')[0].indexOf('SM') != -1 || TAFsplit[a].split(' ')[0].length == 4){
+      tafTranslate[a].Visibility = {}
+      tafTranslate[a].FlightCat.Visibility = 3;
+      if (TAFsplit[a].indexOf("CAVOK") != -1) {
+        tafTranslate[a].Visibility = "Visibility OK"
+        tafTranslate[a].FlightCat.Visibility = 3;
+        TAFsplit[a] = TAFsplit[a].replace("CAVOK", "")
+        tafTranslate[a].Clouds = 'Clouds OK'
+      } else {
+        if (TAFsplit[a].indexOf("SM") != -1 && TAFsplit[a].indexOf("P") == -1) {
+          tafTranslate[a].Visibility = TAFsplit[a].split('SM')[0];
+          tafTranslate[a].VisibilityOtherUnit = Math.round(parseInt(tafTranslate[a].Visibility)*1.61) + 'KM'
+          if ((tafTranslate[a].Visibility.indexOf("/") != -1) && (tafTranslate[a].Visibility.indexOf("1 ") != 0)) {
+            tafTranslate[a].FlightCat.Visibility = 0;
+          } else {
+            if ((parseInt(tafTranslate[a].Visibility) <= 5) && (parseInt(tafTranslate[a].Visibility) >= 3)) {
+              tafTranslate[a].FlightCat.Visibility = 2;
+            } else if ((parseInt(tafTranslate[a].Visibility) < 3) && (parseInt(tafTranslate[a].Visibility) >= 1)) {
+              tafTranslate[a].FlightCat.Visibility = 1;
+            } else if (parseInt(tafTranslate[a].Visibility) < 1) {
+              tafTranslate[a].FlightCat.Visibility = 0;
+            } else {
+              tafTranslate[a].FlightCat.Visibility = 3;
+            }
+          }
+            tafTranslate[a].Visibility = tafTranslate[a].Visibility + "SM";
+            //tafTranslate[a].Visibility['tafric'] = tafTranslate[a].Visibility['tafric'] + "KM"
+            TAFsplit[a] = TAFsplit[a].replace(tafTranslate[a].Visibility, "");
+        } else {
+            tafTranslate[a].Visibility = TAFsplit[a].split(' ')[0];
+            TAFsplit[a] = TAFsplit[a].replace(tafTranslate[a].Visibility, "");
+            if (tafTranslate[a].Visibility.indexOf("9999") != -1) {
+                tafTranslate[a].Visibility = ">10 KM";
+                tafTranslate[a].VisibilityOtherUnit = ">6.2SM"
+                tafTranslate[a].FlightCat.Visibility = 3;
+            } else if (tafTranslate[a].Visibility.indexOf("0000") != -1) {
+                tafTranslate[a].Visibility = "<50 metres";
+                tafTranslate[a].VisibilityOtherUnit = "0SM"
+                tafTranslate[a].FlightCat.Visibility = 0;
+            } else if (tafTranslate[a].Visibility.slice(1) == "000") {
+                tafTranslate[a].Visibility = tafTranslate[a].Visibility.charAt(0);
+                tafTranslate[a].VisibilityOtherUnit = Math.round(parseInt(tafTranslate[a].Visibility)*0.62) + "SM";
+                if ((parseInt(tafTranslate[a].Visibility) <= 8) && (parseInt(tafTranslate[a].Visibility) >= 4.8)) {
+                  tafTranslate[a].FlightCat.Visibility = 2;
+                } else if ((parseInt(tafTranslate[a].Visibility) < 4.8) && (parseInt(tafTranslate[a].Visibility) >= 1.6)) {
+                  tafTranslate[a].FlightCat.Visibility = 1;
+                } else if (parseInt(tafTranslate[a].Visibility) < 1.6) {
+                  tafTranslate[a].FlightCat.Visibility = 0;
+                } else {
+                  tafTranslate[a].FlightCat.Visibility = 3;
+                }
+                tafTranslate[a].Visibility = tafTranslate[a].Visibility + "KM";
+            } else if (tafTranslate[a].Visibility.indexOf("P") != -1) {
+              tafTranslate[a].Visibility = ">6SM"
+              tafTranslate[a].VisibilityOtherUnit = ">9.6KM"
+            }
+            else {
+                while (tafTranslate[a].Visibility.charAt(0) === '0') {
+                    tafTranslate[a].Visibility = tafTranslate[a].Visibility.substr(1);
+                }
+                tafTranslate[a].VisibilityOtherUnit = Math.round(parseInt(tafTranslate[a].Visibility)*3.28) + "ft";
+                tafTranslate[a].Visibility = tafTranslate[a].Visibility + " metres";
+                tafTranslate[a].FlightCat.Visibility = 0;
+            }
+          };
+        };
+      };
+      TAFsplit[a] =TAFsplit[a].trim()
 
+
+      //Clouds
+
+      tafTranslate[a].FlightCat.Ceiling = 3;
+      if (TAFsplit[a].split(' ')[0].indexOf("NSC") != -1) {
+          tafTranslate[a].Clouds = "No Significant Clouds";
+          TAFsplit[a] = TAFsplit[a].replace('NSC', "");
+          tafTranslate[a].FlightCat.Ceiling = 3;
+      } else if (TAFsplit[a].split(' ')[0].indexOf("NCD") != -1) {
+          tafTranslate[a].Clouds = "No Cloud Detected";
+          TAFsplit[a] = TAFsplit[a].replace('NCD', "");
+          tafTranslate[a].FlightCat.Ceiling = 3;
+      }
+      var x = 0;
+      if (TAFsplit[a].split(' ')[0].slice(0,3) in dictClouds) {
+        tafTranslate[a].Clouds = {};
+      }
+      while (TAFsplit[a].split(' ')[0].slice(0,3) in dictClouds) {
+          tafTranslate[a].Clouds[x] = {};
+          tafClouds = TAFsplit[a].split(' ')[0];
+          TAFsplit[a] = TAFsplit[a].replace(tafClouds, '')
+          if (tafClouds.indexOf('CB') != -1) {
+              tafClouds = tafClouds.slice(0,-2)
+              tafTranslate[a].Clouds[x].Layer = "Cumulonimbus"
+          } else if (tafClouds.indexOf('TCU') != -1) {
+              tafClouds = tafClouds.slice(0,-3)
+              tafTranslate[a].Clouds[x].Layer = "Towering Cumulonimbus"
+          }
+          tafTranslate[a].Clouds[x].Layer = dictClouds[tafClouds.slice(0,3)]
+          tafTranslate[a].Clouds[x].Height = tafClouds.slice(3,6)
+          while (tafTranslate[a].Clouds[x].Height.charAt(0) === '0') {
+              tafTranslate[a].Clouds[x].Height = tafTranslate[a].Clouds[x].Height.substr(1);
+          }
+          tafTranslate[a].Clouds[x].Height += '00';
+          TAFsplit[a] = TAFsplit[a].trim()
+
+          if (((parseInt(tafTranslate[a].Clouds[x].Height) <= 3000) && (parseInt(tafTranslate[a].Clouds[x].Height) >= 1000)) && ((tafTranslate[a].Clouds[x].Layer == 'Broken Clouds') || (tafTranslate[a].Clouds[x].Layer == 'Overcast Clouds'))) {
+            if (tafTranslate[a].FlightCat.Ceiling > 2) {
+              tafTranslate[a].FlightCat.Ceiling = 2;
+            }
+          } else if (((parseInt(tafTranslate[a].Clouds[x].Height) < 1000) && (parseInt(tafTranslate[a].Clouds[x].Height) >= 500)) && ((tafTranslate[a].Clouds[x].Layer == 'Broken Clouds') || (tafTranslate[a].Clouds[x].Layer == 'Overcast Clouds'))) {
+            if (tafTranslate[a].FlightCat.Ceiling > 1) {
+              tafTranslate[a].FlightCat.Ceiling = 1;
+            }
+          } else if (((parseInt(tafTranslate[a].Clouds[x].Height) < 500)) && ((tafTranslate[a].Clouds[x].Layer == 'Broken Clouds') || (tafTranslate[a].Clouds[x].Layer == 'Overcast Clouds'))) {
+            if (tafTranslate[a].FlightCat.Ceiling > 0) {
+              tafTranslate[a].FlightCat.Ceiling = 0;
+            }
+          } else {
+            if (tafTranslate[a].FlightCat.Ceiling > 3) {
+              tafTranslate[a].FlightCat.Ceiling = 3;
+            }
+          }
+          x++;
+      };
+    TAFsplit[a] = TAFsplit[a].trim();
+
+    //VV
+    if (TAFsplit[a].split(' ')[0].slice(0,2).indexOf('VV') != -1) {
+        tafTranslate[a].VV = "";
+        tafTranslate[a].FlightCat.Ceiling = 0;
+        tafTranslate[a].VV = TAFsplit[a].split(' ')[0];
+        TAFsplit[a] = TAFsplit[a].replace(tafTranslate[a].VV, "");
+        tafTranslate[a].VV = tafTranslate[a].VV.slice(2);
+        while (tafTranslate[a].VV.charAt(0) === '0') {
+            tafTranslate[a].VV = tafTranslate[a].VV.substr(1);
+        };
+        if (tafTranslate[a].VV.indexOf('///') != -1) {
+          tafTranslate[a].VV = "Unknown"
+        } else {
+          tafTranslate[a].VV = tafTranslate[a].VV + "00ft";
+        }
+
+    }
+    TAFsplit[a] = TAFsplit[a].trim();
+
+
+    a++
+
+  }
   console.log(tafTranslate)
   console.log(TAFsplit)
+  //showResult(tafTranslate);
+}
+  function showResult(obj) {
+    $('#ResultBox').remove();
+    $('#tafResults').append(
+      '<div id="ResultBox" class="row box">' +
+        '<div id="tafStation" class="col-md-6 tafResults"><strong>Station: </strong></div>' +
+        '<div id="tafPubTime" class="col-md-6 tafResults"><strong>Publish Time: </strong></div>' +
+        '<div id="tafValidity" class="col-md-6 tafResults"><strong>Validity Period: </strong></div>' +
+      '</div>')
+    for(var i=0; i < Object.keys(obj).length-2; i++){
+      console.log(i)
+      $('#tafResults').append(
+        '<div id="ResultBox" class="row box">' +
+          '<div id="tafModifier" class="col-md-6 tafResults"><strong></strong></div>' +
+          '<div id="tafTime" class="col-md-6 tafResults"><strong>Time: </strong></div>' +
+          '<div id="tafWinds" class="col-md-4 tafResults"><strong>Winds: </strong></div>' +
+          '<div id="tafVisibility" class="col-md-4 tafResults"><strong>Visibility: </strong></div>' +
+          '<div id="tafWx" class="col-md-4 tafResults"><strong>Weather Phenomena: </strong></div>' +
+          '<div id="tafClouds" class="col-md-4 tafResults"><strong>Clouds: </strong></div>' +
+          '<div id="tafFlightCat" class="col-md-4 tafResults"><strong>Flight Category: </strong></div>' +
+        '</div>')
+    }
+    $('#tafResults').append(
+      '<div id="ResultBox" class="row box">' +
+        '<div id="tafRemarks" class="col-md-6 tafResults"><strong>Remarks: </strong></div>' +
+      '</div>')
+    hideLoading();
   }
